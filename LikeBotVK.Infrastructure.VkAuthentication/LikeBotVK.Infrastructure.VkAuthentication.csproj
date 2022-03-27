@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="2captcha-csharp" Version="1.1.0" />
+      <PackageReference Include="CaptchaSharp" Version="1.0.10" />
+      <PackageReference Include="VkNet" Version="1.68.0" />
+      <PackageReference Include="VkNet.AudioBypassService" Version="1.7.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Domain\LikeBotVK.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

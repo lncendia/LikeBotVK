@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Error.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Privacy.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Shared\_Layout.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\Shared\_ValidationScriptsPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\_ViewImports.cshtml" />
+      <_ContentIncludedByDefault Remove="Pages\_ViewStart.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Application.Services\LikeBotVK.Application.Services.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Domain.Services\LikeBotVK.Domain.Services.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.ApplicationData\LikeBotVK.Infrastructure.ApplicationData.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.JobFunctions\LikeBotVK.Infrastructure.JobFunctions.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.JobScheduler\LikeBotVK.Infrastructure.JobScheduler.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.PaymentSystem\LikeBotVK.Infrastructure.PaymentSystem.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.PersistentStorage\LikeBotVK.Infrastructure.PersistentStorage.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.PublicationsGetter\LikeBotVK.Infrastructure.PublicationsGetter.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.VkAuthentication\LikeBotVK.Infrastructure.VkAuthentication.csproj" />
+      <ProjectReference Include="..\LikeBotVK.Infrastructure.Web\LikeBotVK.Infrastructure.Web.csproj" />
+    </ItemGroup>
+
+</Project>

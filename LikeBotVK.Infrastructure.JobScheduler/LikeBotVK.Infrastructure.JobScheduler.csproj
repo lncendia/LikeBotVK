@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Hangfire.AspNetCore" Version="1.7.28" />
+      <PackageReference Include="Hangfire.SqlServer" Version="1.7.28" />
+    </ItemGroup>
+
+</Project>
