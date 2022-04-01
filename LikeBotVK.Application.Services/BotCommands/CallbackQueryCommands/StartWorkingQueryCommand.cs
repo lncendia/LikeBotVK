@@ -1,9 +1,11 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.VK.Entities;
 using LikeBotVK.Domain.VK.Specification;
+using LikeBotVK.Domain.VK.Specification.Visitor;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -21,13 +23,9 @@ public class StartWorkingQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        if (user!.Subscribes.Count == 0)
-        {
-            await client.AnswerCallbackQueryAsync(query.Id, "У вас нет подписок.");
-            return;
-        }
-
-        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserActiveVksSpecification(user.Id));
+        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(
+            new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVksSpecification(user!.Id),
+                new ActiveVksSpecification()));
         if (vks.Count == 0)
         {
             await client.AnswerCallbackQueryAsync(query.Id, "У вас нет активированных аккаунтов.");

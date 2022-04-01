@@ -1,12 +1,13 @@
-using Ardalis.Specification;
-using Ardalis.Specification.EntityFrameworkCore;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
 using LikeBotVK.Domain.Jobs.ValueObjects;
+using LikeBotVK.Domain.Specifications;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
+using LikeBotVK.Infrastructure.PersistentStorage.EqualityComparers;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
+using LikeBotVK.Infrastructure.PersistentStorage.Visitors;
 using Microsoft.EntityFrameworkCore;
 
 namespace LikeBotVK.Infrastructure.PersistentStorage.Repositories;
@@ -22,19 +23,12 @@ public class JobRepository : IJobRepository
         _mapper = GetMapper();
     }
 
-    public Task<List<Job>> FindAsync(ISpecification<Job> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Jobs.ProjectTo<Job>(_mapper.ConfigurationProvider), specification).ToListAsync();
-
-    public Task<int> CountAsync(ISpecification<Job> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Jobs.ProjectTo<Job>(_mapper.ConfigurationProvider), specification).CountAsync();
-
     public async Task AddAsync(Job entity)
     {
         var job = AddMap(entity);
         await _context.AddAsync(job);
         await _context.SaveChangesAsync();
+        entity.Id = job.Id;
     }
 
     private JobModel AddMap(Job entity)
@@ -48,7 +42,7 @@ public class JobRepository : IJobRepository
     {
         _mapper.Map(entity, destination);
         var publications = _mapper.Map<List<Publication>, List<PublicationModel>>(entity.Publications);
-        if (destination.Publications.SequenceEqual(publications)) return;
+        if (destination.Publications.SequenceEqual(publications, new PublicationEqualityComparer())) return;
         destination.Publications.Clear();
         destination.Publications.AddRange(publications);
     }
@@ -58,6 +52,7 @@ public class JobRepository : IJobRepository
         var jobs = entities.Select(AddMap).ToList();
         await _context.AddRangeAsync(jobs);
         await _context.SaveChangesAsync();
+        for (int i = 0; i < entities.Count; i++) entities[i].Id = jobs[i].Id;
     }
 
     public Task UpdateAsync(Job entity)
@@ -90,8 +85,40 @@ public class JobRepository : IJobRepository
         return _context.SaveChangesAsync();
     }
 
-    public Task<Job?> GetAsync(int id) => _context.Jobs.ProjectTo<Job>(_mapper.ConfigurationProvider)
-        .FirstOrDefaultAsync(model => model.Id == id);
+    public async Task<Job?> GetAsync(int id)
+    {
+        var job = await _context.Jobs.FirstOrDefaultAsync(model => model.Id == id);
+        return job == null ? null : _mapper.Map<JobModel, Job>(job);
+    }
+
+    public async Task<List<Job>> FindAsync(ISpecification<Job, IJobSpecificationVisitor>? specification,
+        int? skip = null,
+        int? take = null)
+    {
+        var query = _context.Jobs.AsQueryable();
+        if (specification != null)
+        {
+            var visitor = new JobVisitor();
+            specification.Accept(visitor);
+            if (visitor.Expr != null) query = query.Where(visitor.Expr);
+        }
+
+        if (skip.HasValue) query = query.Skip(skip.Value);
+        if (take.HasValue) query = query.Take(take.Value);
+
+        return _mapper.Map<List<JobModel>, List<Job>>(await query.ToListAsync());
+    }
+
+    public Task<int> CountAsync(ISpecification<Job, IJobSpecificationVisitor>? specification)
+    {
+        var query = _context.Jobs.AsQueryable();
+        if (specification == null) return query.CountAsync();
+        var visitor = new JobVisitor();
+        specification.Accept(visitor);
+        if (visitor.Expr != null) query = query.Where(visitor.Expr);
+
+        return query.CountAsync();
+    }
 
     private static IMapper GetMapper() =>
         new Mapper(new MapperConfiguration(expr =>

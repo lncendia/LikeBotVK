@@ -1,8 +1,8 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -15,7 +15,9 @@ public class EnterIntervalCommand : ITextCommand
     public async Task ExecuteAsync(ITelegramBotClient client, User? user, UserData? data, Message message,
         ServiceFacade serviceFacade)
     {
-        var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
+        var currentJobs =
+            await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                new JobsFromIdsSpecification(data!.CurrentJobsId));
         var dataInterval = message.Text!.Split(':');
         if (dataInterval.Length != 2 || !int.TryParse(dataInterval[0], out var lower) ||
             !int.TryParse(dataInterval[1], out var upper) ||
@@ -34,13 +36,13 @@ public class EnterIntervalCommand : ITextCommand
             return;
         }
 
-        currentWorks.ForEach(job => job.SetInterval(lower, upper));
-        await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentWorks);
+        currentJobs.ForEach(job => job.SetInterval(lower, upper));
+        await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentJobs);
 
-        data!.State = State.EnterDateLimitation;
+        data.State = State.EnterDateLimitation;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id,
-            "Введите дату до которой необходимо публикации (в UTC). Формат: <code>yyyy MM dd HH:mm:ss</code>",
+            "Введите дату до которой необходимо получать публикации (в UTC). Формат: <code>yyyy MM dd HH:mm:ss</code>",
             ParseMode.Html, replyMarkup: JobsKeyboard.SkipDataLimitation);
     }
 

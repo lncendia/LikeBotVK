@@ -8,4 +8,5 @@ public interface IUserDataRepository
     Task<UserData?> GetAsync(long id);
     Task AddOrUpdateAsync(UserData data);
     Task DeleteAsync(long id);
+    Task<List<UserData>> GetUsersWithExpiredSubscribesAsync();
 }

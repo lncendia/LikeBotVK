@@ -1,8 +1,8 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -15,28 +15,21 @@ public class SendKeyboardCommand : ITextCommand
     public async Task ExecuteAsync(ITelegramBotClient client, User? user, UserData? data, Message message,
         ServiceFacade serviceFacade)
     {
-        var jobs = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
-        try
+        if (data != null)
         {
-            if (jobs.Any())
-            {
-                foreach (var job in jobs)
-                    await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(job.Id);
+            var currentJobs =
+                await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                    new JobsFromIdsSpecification(data.CurrentJobsId));
 
-                await serviceFacade.UnitOfWork.JobRepository.Value.DeleteRangeAsync(jobs);
-            }
+            foreach (var job in currentJobs)
+                await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(job.Id);
+
+            await serviceFacade.UnitOfWork.JobRepository.Value.DeleteRangeAsync(currentJobs);
+            data.CurrentVkId = null;
+            data.State = State.Main;
         }
-        catch (Exception ex)
-        {
-            await client.SendTextMessageAsync(message.From!.Id, $"Ошибка: {ex.Message}",
-                replyMarkup: MainKeyboard.Main);
-            return;
-        }
+        else data = new UserData {UserId = user!.Id, State = State.Main};
 
-        data ??= new UserData {UserId = user.Id, State = State.Main};
-
-        data.CurrentVkId = null;
-        data.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id, "Вы в главном меню.",
             replyMarkup: MainKeyboard.MainReplyKeyboard);

@@ -9,7 +9,10 @@ namespace LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 public static class JobsKeyboard
 {
     private static readonly string[] Emodji =
-        {"🏞", "🏔", "🏖", "🌋", "🏜", "🏕", "🌎", "🗽", "🌃", "☘", "🐲", "🌸", "🌓", "🍃", "☀", "☁"};
+    {
+        "🏞", "🏔", "🏖", "🌋", "🏜", "🏕", "🌎", "🗽", "🌃", "☘", "🐲", "🌸", "🌓", "🍃", "☀", "☁",
+        "    👚", "    🔶", "🕵🏼‍♀", "🏡", "    📣", "    ♣", "    🎱", "    😂", "    🙆🏽", "⛹🏽"
+    };
 
     private static readonly Random Random = new();
 

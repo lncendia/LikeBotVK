@@ -1,10 +1,8 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Domain.VK.Entities;
-using LikeBotVK.Domain.VK.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -26,18 +24,7 @@ public class EnterVkDataCommand : ITextCommand
             return;
         }
 
-        Vk vk;
-        try
-        {
-            vk = await serviceFacade.VkFactory.CreateVkAsync(user!.Id, dataVk[0], dataVk[1]);
-        }
-        catch (NoSubscriptionException)
-        {
-            await client.SendTextMessageAsync(message.Chat.Id, "У вас недостаточно подписок.",
-                replyMarkup: MainKeyboard.Main);
-            return;
-        }
-
+        var vk = new Vk(user!.Id, dataVk[0], dataVk[1]);
         await serviceFacade.UnitOfWork.VkRepository.Value.AddAsync(vk);
         data!.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);

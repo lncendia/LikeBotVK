@@ -1,12 +1,19 @@
 using LikeBotVK.Domain.VK.Entities;
-using Ardalis.Specification;
+using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.VK.Specification.Visitor;
 
 namespace LikeBotVK.Domain.VK.Specification;
 
-public class UserVksSpecification : Specification<Vk>
+public class UserVksSpecification : ISpecification<Vk, IVkSpecificationVisitor>
 {
+    public long UserId { get; }
+
     public UserVksSpecification(long userId)
     {
-        Query.Where(vk => vk.UserId == userId);
+        UserId = userId;
     }
+
+    public bool IsSatisfiedBy(Vk item) => item.UserId == UserId;
+
+    public void Accept(IVkSpecificationVisitor visitor) => visitor.Visit(this);
 }

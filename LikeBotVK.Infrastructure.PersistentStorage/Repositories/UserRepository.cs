@@ -1,12 +1,10 @@
-using Ardalis.Specification;
-using Ardalis.Specification.EntityFrameworkCore;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Users.Entities;
-using LikeBotVK.Domain.Users.ValueObjects;
+using LikeBotVK.Domain.Users.Specification.Visitor;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
+using LikeBotVK.Infrastructure.PersistentStorage.Visitors;
 using Microsoft.EntityFrameworkCore;
 
 namespace LikeBotVK.Infrastructure.PersistentStorage.Repositories;
@@ -22,57 +20,35 @@ public class UserRepository : IUserRepository
         _mapper = GetMapper();
     }
 
-    public Task<List<User>> FindAsync(ISpecification<User> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Users.ProjectTo<User>(_mapper.ConfigurationProvider), specification).ToListAsync();
-
-    public Task<int> CountAsync(ISpecification<User> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Users.ProjectTo<User>(_mapper.ConfigurationProvider), specification).CountAsync();
-
-    private UserModel AddMap(User entity)
-    {
-        var user = _mapper.Map<UserModel>(entity);
-        user.Subscribes = _mapper.Map<List<Subscribe>, List<SubscribeModel>>(entity.Subscribes);
-        return user;
-    }
-
-    private void UpdateMap(User entity, UserModel destination)
-    {
-        _mapper.Map(entity, destination);
-        var subscribes = _mapper.Map<List<Subscribe>, List<SubscribeModel>>(entity.Subscribes);
-        if (destination.Subscribes.SequenceEqual(subscribes)) return;
-        destination.Subscribes.Clear();
-        destination.Subscribes.AddRange(subscribes);
-    }
-
     public async Task AddAsync(User entity)
     {
-        var user = AddMap(entity);
+        var user = _mapper.Map<User, UserModel>(entity);
         await _context.AddAsync(user);
         await _context.SaveChangesAsync();
+        entity.Id = user.Id;
     }
 
     public async Task AddRangeAsync(List<User> entities)
     {
-        var users = entities.Select(AddMap);
+        var users = _mapper.Map<List<User>, List<UserModel>>(entities);
         await _context.AddRangeAsync(users);
         await _context.SaveChangesAsync();
+        for (int i = 0; i < entities.Count; i++) entities[i].Id = users[i].Id;
     }
 
     public Task UpdateAsync(User entity)
     {
-        var model = _context.Users.Include(u => u.Subscribes).First(x => x.Id == entity.Id);
-        UpdateMap(entity, model);
+        var model = _context.Users.First(x => x.Id == entity.Id);
+        _mapper.Map(entity, model);
         return _context.SaveChangesAsync();
     }
 
     public async Task UpdateRangeAsync(List<User> entities)
     {
         var ids = entities.Select(user => user.Id);
-        var users = await _context.Users.Include(u => u.Subscribes).Where(user => ids.Contains(user.Id)).ToListAsync();
+        var users = await _context.Users.Where(user => ids.Contains(user.Id)).ToListAsync();
         foreach (var entity in entities)
-            UpdateMap(entity, users.First(userModel => userModel.Id == entity.Id));
+            _mapper.Map(entity, users.First(userModel => userModel.Id == entity.Id));
         await _context.SaveChangesAsync();
     }
 
@@ -89,16 +65,43 @@ public class UserRepository : IUserRepository
         return _context.SaveChangesAsync();
     }
 
-    public Task<User?> GetAsync(long id) => _context.Users.ProjectTo<User>(_mapper.ConfigurationProvider)
-        .FirstOrDefaultAsync(model => model.Id == id);
+    public async Task<User?> GetAsync(long id)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(model => model.Id == id);
+        return user == null ? null : _mapper.Map<UserModel, User>(user);
+    }
+
+    public async Task<List<User>> FindAsync(
+        Domain.Specifications.ISpecification<User, IUserSpecificationVisitor>? specification, int? skip = null,
+        int? take = null)
+    {
+        var query = _context.Users.AsQueryable();
+        if (specification != null)
+        {
+            var visitor = new UserVisitor();
+            specification.Accept(visitor);
+            if (visitor.Expr != null) query = query.Where(visitor.Expr);
+        }
+
+        if (skip.HasValue) query = query.Skip(skip.Value);
+        if (take.HasValue) query = query.Take(take.Value);
+
+        return _mapper.Map<List<UserModel>, List<User>>(await query.ToListAsync());
+    }
+
+    public Task<int> CountAsync(Domain.Specifications.ISpecification<User, IUserSpecificationVisitor>? specification)
+    {
+        var query = _context.Users.AsQueryable();
+        if (specification == null) return query.CountAsync();
+        var visitor = new UserVisitor();
+        specification.Accept(visitor);
+        if (visitor.Expr != null) query = query.Where(visitor.Expr);
+
+        return query.CountAsync();
+    }
 
     private static IMapper GetMapper()
     {
-        return new Mapper(new MapperConfiguration(expr =>
-        {
-            expr.CreateMap<User, UserModel>().ForMember(model => model.Subscribes, expression => expression.Ignore());
-            expr.CreateMap<UserModel, User>();
-            expr.CreateMap<Subscribe, SubscribeModel>().ReverseMap();
-        }));
+        return new Mapper(new MapperConfiguration(expr => { expr.CreateMap<User, UserModel>().ReverseMap(); }));
     }
 }

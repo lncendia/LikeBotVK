@@ -6,17 +6,26 @@ public class Vk
 {
     public Vk(long userId, string username, string password)
     {
-        UserId = userId;
         Username = username;
+        Password = password;
+        UserId = userId;
+    }
+
+    public int Id { get; set; }
+    public string Username { get; private set; }
+    public string Password { get; private set; }
+    public string? AccessToken { get; set; }
+
+    public long UserId { get; }
+    public int? ProxyId { get; private set; }
+
+    public void SetProxy(Proxy proxy) => ProxyId = proxy.Id;
+
+    public void ChangeData(string login, string password)
+    {
+        Username = login;
         Password = password;
     }
 
-    public int Id { get; init; }
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public string? AccessToken { get; set; }
-    public long UserId { get; set; }
-    public int? ProxyId { get; set; }
-
-    public void SetProxy(Proxy proxy) => ProxyId = proxy.Id;
+    public bool IsActive() => !string.IsNullOrEmpty(AccessToken);
 }

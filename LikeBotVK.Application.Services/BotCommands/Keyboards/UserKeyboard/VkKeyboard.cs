@@ -5,15 +5,22 @@ namespace LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 
 public static class VkKeyboard
 {
-    public static InlineKeyboardMarkup Exit(long id)
+    private static readonly string[] Emodji =
     {
-        var keyboard = new List<InlineKeyboardButton>
-        {
-            InlineKeyboardButton.WithCallbackData("🚪 Выйти", $"exit_{id}"),
-            InlineKeyboardButton.WithCallbackData("♻ Перезайти", $"reLogIn_{id}")
-        };
-        return new InlineKeyboardMarkup(keyboard);
-    }
+        "😌", "🚜", "👌🏾", "🎳", "🐩", "☝🏽", "🚨", "🔱", "🙊", "🐾", "🕧", "👋🏻", "🍀", "✳", "🏌‍♀", "🛬", "🎺",
+        "🏄", "💏", "🏊🏻‍♀", "👏🏼", "😡", "❣"
+    };
+
+    private static readonly Random Random = new();
+    // public static InlineKeyboardMarkup Exit(long id)
+    // {
+    //     var keyboard = new List<InlineKeyboardButton>
+    //     {
+    //         InlineKeyboardButton.WithCallbackData("🚪 Выйти", $"exit_{id}"),
+    //         InlineKeyboardButton.WithCallbackData("♻ Перезайти", $"reLogIn_{id}")
+    //     };
+    //     return new InlineKeyboardMarkup(keyboard);
+    // }
 
     public static InlineKeyboardMarkup VkMain(Vk vk)
     {
@@ -41,17 +48,32 @@ public static class VkKeyboard
         new List<List<InlineKeyboardButton>>
         {
             new() {InlineKeyboardButton.WithCallbackData("🆕 Добавить", "enterData")},
-            new() {InlineKeyboardButton.WithCallbackData("🗒 Мои аккаунты", "myInstagrams")}
+            new() {InlineKeyboardButton.WithCallbackData("🗒 Мои аккаунты", "vkPages")}
         });
 
+    public static readonly InlineKeyboardMarkup AddAccount =
+        new(InlineKeyboardButton.WithCallbackData("🆕 Добавить", "enterData"));
 
-    public static InlineKeyboardMarkup Activate(int id)
-    {
-        return new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData("✅ Активировать", $"active_{id}"));
-    }
+    public static InlineKeyboardMarkup Activate(int id) =>
+        new(InlineKeyboardButton.WithCallbackData("✅ Активировать", $"active_{id}"));
 
-    public static InlineKeyboardMarkup Edit(int id)
+    public static InlineKeyboardMarkup Edit(int id) =>
+        new(InlineKeyboardButton.WithCallbackData("🖊 Редактировать", $"edit_{id}"));
+
+    public static InlineKeyboardMarkup VkPages(int count)
     {
-        return new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData("🖊 Редактировать", $"edit_{id}"));
+        List<List<InlineKeyboardButton>> buttons = new();
+        count /= 10;
+        count++;
+        for (int i = 0; i < count; i++)
+        {
+            buttons.Add(new List<InlineKeyboardButton>
+            {
+                InlineKeyboardButton.WithCallbackData($"{Emodji[Random.Next(0, Emodji.Length)]} Страница {i + 1}",
+                    $"myVks_{i+1}")
+            });
+        }
+
+        return new InlineKeyboardMarkup(buttons);
     }
 }

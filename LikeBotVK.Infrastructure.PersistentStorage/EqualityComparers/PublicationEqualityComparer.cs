@@ -8,6 +8,7 @@ public class PublicationEqualityComparer : IEqualityComparer<PublicationModel>
     {
         if (ReferenceEquals(x, null)) return false;
         if (ReferenceEquals(y, null)) return false;
+        Console.WriteLine(x.OwnerId == y.OwnerId && x.PublicationId == y.PublicationId);
         return x.OwnerId == y.OwnerId && x.PublicationId == y.PublicationId;
     }
 

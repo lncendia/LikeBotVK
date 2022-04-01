@@ -1,9 +1,9 @@
 using System.Globalization;
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,7 +16,9 @@ public class EnterDateLimitationCommand : ITextCommand
     public async Task ExecuteAsync(ITelegramBotClient client, User? user, UserData? data, Message message,
         ServiceFacade serviceFacade)
     {
-        var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
+        var currentJobs =
+            await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                new JobsFromIdsSpecification(data!.CurrentJobsId));
         if (!DateTime.TryParseExact(message.Text, "yyyy MM dd HH:mm:ss", CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var date))
@@ -26,14 +28,14 @@ public class EnterDateLimitationCommand : ITextCommand
                 ParseMode.Html, replyMarkup: MainKeyboard.Main);
         }
 
-        foreach (var job in currentWorks)
+        foreach (var job in currentJobs)
         {
             var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
             dataJob!.DateTimeLimitation = date;
             await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(dataJob);
         }
 
-        data!.State = State.SelectTypeJob;
+        data.State = State.SelectTypeJob;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.Chat.Id, "Введите тип работы:",
             replyMarkup: JobsKeyboard.SelectTypeWork);

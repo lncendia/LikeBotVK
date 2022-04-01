@@ -1,9 +1,7 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Users.ValueObjects;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -37,22 +35,29 @@ public class EnterSubscribeDataCommand : ITextCommand
             }
         }
 
-        var user2 = await serviceFacade.UnitOfWork.UserRepository.Value.GetAsync(id);
+        var data2 = await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.GetAsync(id);
 
-        if (user2 == null)
+        if (data2 == null)
         {
             await client.SendTextMessageAsync(user!.Id, "Пользователь не найден. Попробуйте ещё раз.",
                 replyMarkup: MainKeyboard.Main);
             return;
         }
 
-        user2.AddSubscribe(new Subscribe(date));
-        await serviceFacade.UnitOfWork.UserRepository.Value.UpdateAsync(user2);
+        data2.Subscribes.Add(new Subscribe(date));
+        await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data2);
 
         data!.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(user!.Id, "Успешно. Вы в главном меню.");
-        await client.SendTextMessageAsync(user2.Id, $"Администратор активировал вам подписку до {date:D}");
+        try
+        {
+            await client.SendTextMessageAsync(data2.UserId, $"Администратор активировал вам подписку до {date:D}");
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
 

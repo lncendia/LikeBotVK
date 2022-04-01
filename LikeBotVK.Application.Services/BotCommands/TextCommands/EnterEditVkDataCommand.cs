@@ -37,15 +37,13 @@ public class EnterEditVkDataCommand : ITextCommand
             return;
         }
 
-        vk.Username = dataVk[0];
-        vk.Password = dataVk[1];
+        vk.ChangeData(dataVk[0], dataVk[1]);
         await serviceFacade.UnitOfWork.VkRepository.Value.UpdateAsync(vk);
 
         data!.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
 
-        await client.SendTextMessageAsync(message.Chat.Id,
-            "Аккаунт успешно изменён.", replyMarkup: VkKeyboard.Activate(vk.Id));
+        await client.SendTextMessageAsync(message.Chat.Id, "Аккаунт успешно изменён.");
     }
 
     public bool Compare(Message message, User? user, UserData? data) =>

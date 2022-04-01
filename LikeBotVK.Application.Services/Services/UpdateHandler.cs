@@ -5,7 +5,6 @@ using LikeBotVK.Application.Services.BotCommands.CallbackQueryCommands;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.BotCommands.TextCommands;
-using LikeBotVK.Domain.Abstractions.Factories;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -21,15 +20,15 @@ public class UpdateHandler : IUpdateHandler
     private readonly ServiceFacade _serviceFacade;
 
     public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger, IVkLoginService vkLoginService,
-        IUserJobService userJobService, Configuration configuration, IPaymentService paymentService,
+        Configuration configuration, IPaymentService paymentService,
         IJobScheduler jobScheduler, IUnitOfWork unitOfWork, IApplicationDataUnitOfWork applicationDataUnitOfWork,
-        IJobFactory jobFactory, IVkFactory vkFactory)
+        IProxySetter proxySetter)
 
     {
         _botClient = botClient;
         _logger = logger;
         _serviceFacade = new ServiceFacade(vkLoginService, configuration, paymentService, jobScheduler,
-            unitOfWork, applicationDataUnitOfWork, userJobService, vkFactory, jobFactory);
+            unitOfWork, applicationDataUnitOfWork, proxySetter);
     }
 
     private static readonly List<ITextCommand> TextCommands = new()
@@ -62,7 +61,7 @@ public class UpdateHandler : IUpdateHandler
     {
         new ActiveVkQueryCommand(),
         new BillQueryCommand(),
-        new BuySubscribeQueryCommand(),
+        new VkPagesQueryCommand(),
         new ContinueSelectQueryCommand(),
         new EditVkQueryCommand(),
         new ExitQueryCommand(),
@@ -97,7 +96,7 @@ public class UpdateHandler : IUpdateHandler
             // UpdateType.Poll:
             UpdateType.Message => BotOnMessageReceived(update.Message!),
             UpdateType.CallbackQuery => BotOnCallbackQueryReceived(update.CallbackQuery!),
-            _ => UnknownUpdateHandlerAsync(update)
+            _ => UnknownUpdateHandlerAsync()
         };
 
         try
@@ -135,7 +134,7 @@ public class UpdateHandler : IUpdateHandler
         _logger.LogError(ex, "Update id: {Id}", update.Id);
     }
 
-    private Task UnknownUpdateHandlerAsync(Update update)
+    private Task UnknownUpdateHandlerAsync()
     {
         return Task.CompletedTask;
     }

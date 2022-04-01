@@ -4,6 +4,7 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Domain.Jobs.Enums;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -17,9 +18,11 @@ public class SelectWorkTypeQueryCommand : ICallbackQueryCommand
         ServiceFacade serviceFacade)
     {
         var type = (WorkType) Enum.Parse(typeof(WorkType), query.Data![9..]);
-        var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
+        var currentJobs =
+            await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                new JobsFromIdsSpecification(data!.CurrentJobsId));
 
-        foreach (var job in currentWorks)
+        foreach (var job in currentJobs)
         {
             var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
             dataJob!.WorkType = type;

@@ -26,8 +26,8 @@ public static class ApplicationServices
         services.AddScoped<IPaymentService, PaymentService>(
             _ => new PaymentService(configuration.PaymentConfiguration.QiwiToken));
         services.AddScoped<ISubscribeDeleter, SubscribeDeleter>();
+        services.AddScoped<IProxySetter, RandomProxySetter>();
         services.AddScoped<IUpdateHandler, UpdateHandler>();
-        services.AddScoped<IUserJobService, UserJobService>();
         services.AddScoped<IVkLoginService, VkLoginService>(
             provider => new VkLoginService(provider.GetService<IUnitOfWork>()!,
                 configuration.AntiCaptchaToken));

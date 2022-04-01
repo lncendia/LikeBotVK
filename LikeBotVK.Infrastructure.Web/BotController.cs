@@ -19,11 +19,4 @@ public class BotController : ControllerBase
         await _updateService.HandleAsync(update);
         return Ok();
     }
-
-    [HttpGet]
-    public IActionResult Get()
-
-    {
-        return Ok();
-    }
 }

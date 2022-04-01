@@ -1,5 +1,4 @@
 using LikeBotVK.Application.Abstractions.DTO;
-using LikeBotVK.Domain.Payments.Entities;
 
 namespace LikeBotVK.Application.Abstractions.BotServices;
 

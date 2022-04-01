@@ -1,13 +1,10 @@
-using Ardalis.Specification;
-using LikeBotVK.Domain.Jobs.Entities;
-using LikeBotVK.Domain.Users.Entities;
+using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 
 namespace LikeBotVK.Domain.Abstractions.Interfaces;
 
-public interface IRepository<T, in TK> where T : class
+public interface IRepository<T, in TK, out TX> where T : class where TX : ISpecificationVisitor<TX, T>
 {
-    Task<List<T>> FindAsync(ISpecification<T> specification);
-    Task<int> CountAsync(ISpecification<T> specification);
     Task AddAsync(T entity);
     Task AddRangeAsync(List<T> entities);
     Task UpdateAsync(T entity);
@@ -15,4 +12,6 @@ public interface IRepository<T, in TK> where T : class
     Task DeleteAsync(T entity);
     Task DeleteRangeAsync(List<T> entities);
     Task<T?> GetAsync(TK id);
+    Task<List<T>> FindAsync(ISpecification<T, TX>? specification, int? skip = null, int? take = null);
+    Task<int> CountAsync(ISpecification<T, TX>? specification);
 }

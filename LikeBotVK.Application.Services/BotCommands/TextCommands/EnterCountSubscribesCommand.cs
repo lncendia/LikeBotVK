@@ -7,6 +7,7 @@ using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using PaymentData = LikeBotVK.Application.Abstractions.DTO.PaymentData;
 using User = LikeBotVK.Domain.Users.Entities.User;
 
 namespace LikeBotVK.Application.Services.BotCommands.TextCommands;
@@ -44,8 +45,7 @@ public class EnterCountSubscribesCommand : ITextCommand
                 replyMarkup: MainKeyboard.Main);
             return;
         }
-
-        data.State = State.Main;
+        
         data.BonusAccount -= bonus;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id,

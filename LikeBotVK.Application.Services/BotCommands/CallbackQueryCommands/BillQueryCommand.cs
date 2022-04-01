@@ -1,8 +1,6 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
-using LikeBotVK.Domain.Payments.Entities;
-using LikeBotVK.Domain.Users.ValueObjects;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -15,11 +13,11 @@ public class BillQueryCommand : ICallbackQueryCommand
         ServiceFacade serviceFacade)
     {
         var queryData = query.Data!.Split('_', 3);
-        Payment payment;
+        PaymentData payment;
         try
         {
             var (item1, dateTime) = await serviceFacade.PaymentService.GetPaymentData(queryData[2]);
-            payment = new Payment(user!.Id, item1, dateTime);
+            payment = new PaymentData(user!.Id, item1, dateTime);
         }
         catch (BillNotPaidException)
         {
@@ -34,13 +32,13 @@ public class BillQueryCommand : ICallbackQueryCommand
 
         var count = int.Parse(queryData[1]);
         for (var i = 0; i < count; i++)
-            user.AddSubscribe(new Subscribe(DateTime.UtcNow.AddDays(serviceFacade.Configuration.SubscribeDuration)));
+            data!.Subscribes.Add(new Subscribe(DateTime.UtcNow.AddDays(serviceFacade.Configuration.SubscribeDuration)));
 
-        await serviceFacade.UnitOfWork.UserRepository.Value.UpdateAsync(user);
+        await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data!);
 
         if (data!.ReferralId.HasValue) await DepositBonus(user, data, serviceFacade, client);
 
-        await serviceFacade.UnitOfWork.PaymentRepository.Value.AddAsync(payment);
+        await serviceFacade.ApplicationDataUnitOfWork.PaymentDataRepository.Value.AddOrUpdateAsync(payment);
 
         var message = query.Message!.Text!;
         message = message.Replace("❌ Статус: Не оплачено", "✔ Статус: Оплачено");

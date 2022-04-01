@@ -1,8 +1,10 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Repositories;
 using LikeBotVK.Infrastructure.ApplicationData.Context;
+using LikeBotVK.Infrastructure.ApplicationData.EqualityComparers;
+using LikeBotVK.Infrastructure.ApplicationData.Models;
 using Microsoft.EntityFrameworkCore;
+using UserData = LikeBotVK.Application.Abstractions.ApplicationData.UserData;
 
 namespace LikeBotVK.Infrastructure.ApplicationData.Services;
 
@@ -15,18 +17,45 @@ public class UserDataRepository : IUserDataRepository
         _context = context;
     }
 
-    public Task<UserData?> GetAsync(long id)
+    private static UserData Map(Models.UserData userData)
     {
-        return _context.UsersData.Where(data => data.UserId == id).Select(data => new UserData()
+        var user = new UserData
         {
-            UserId = data.UserId,
-            CurrentVkId = data.CurrentVkId,
-            IsAdmin = data.IsAdmin,
-            IsBanned = data.IsBanned,
-            State = data.State,
-            ReferralId = data.ReferralId,
-            BonusAccount = data.BonusAccount
-        }).FirstOrDefaultAsync();
+            UserId = userData.UserId,
+            CurrentVkId = userData.CurrentVkId,
+            IsAdmin = userData.IsAdmin,
+            IsBanned = userData.IsBanned,
+            State = userData.State,
+            ReferralId = userData.ReferralId,
+            BonusAccount = userData.BonusAccount,
+            CurrentJobsId = userData.CurrentJobsId
+        };
+        foreach (var data in userData.Subscribes)
+            user.Subscribes.Add(new Subscribe(data.EndSubscribe));
+        return user;
+    }
+
+    private static void Map(UserData userData, Models.UserData destination)
+    {
+        destination.UserId = userData.UserId;
+        destination.CurrentVkId = userData.CurrentVkId;
+        destination.IsAdmin = userData.IsAdmin;
+        destination.IsBanned = userData.IsBanned;
+        destination.State = userData.State;
+        destination.ReferralId = userData.ReferralId;
+        destination.BonusAccount = userData.BonusAccount;
+        destination.CurrentJobsId = userData.CurrentJobsId;
+        var subscribes =
+            userData.Subscribes.Select(x => new SubscribeData() {EndSubscribe = x.EndSubscribe}).ToList();
+        if (subscribes.SequenceEqual(destination.Subscribes, new SubscribeEqualityComparer())) return;
+        destination.Subscribes.Clear();
+        destination.Subscribes.AddRange(subscribes);
+    }
+
+    public async Task<UserData?> GetAsync(long id)
+    {
+        var data = await _context.UsersData.Where(data => data.UserId == id).FirstOrDefaultAsync();
+        return data == null ? null : Map(data);
     }
 
     public async Task AddOrUpdateAsync(UserData data)
@@ -34,27 +63,11 @@ public class UserDataRepository : IUserDataRepository
         var userData = _context.UsersData.FirstOrDefault(data1 => data1.UserId == data.UserId);
         if (userData == null)
         {
-            await _context.AddAsync(new Models.UserData()
-            {
-                UserId = data.UserId,
-                CurrentVkId = data.CurrentVkId,
-                IsAdmin = data.IsAdmin,
-                IsBanned = data.IsBanned,
-                State = data.State,
-                ReferralId = data.ReferralId,
-                BonusAccount = data.BonusAccount
-            });
+            userData = new Models.UserData();
+            await _context.AddAsync(userData);
         }
-        else
-        {
-            userData.UserId = data.UserId;
-            userData.CurrentVkId = data.CurrentVkId;
-            userData.IsAdmin = data.IsAdmin;
-            userData.IsBanned = data.IsBanned;
-            userData.State = data.State;
-            userData.ReferralId = data.ReferralId;
-            userData.BonusAccount = data.BonusAccount;
-        }
+
+        Map(data, userData);
 
         await _context.SaveChangesAsync();
     }
@@ -65,5 +78,12 @@ public class UserDataRepository : IUserDataRepository
         if (data == null) return;
         _context.Remove(data);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<UserData>> GetUsersWithExpiredSubscribesAsync()
+    {
+        var data = await _context.UsersData.Where(d => d.Subscribes.Any(s => s.EndSubscribe < DateTime.UtcNow))
+            .ToListAsync();
+        return data.Select(Map).ToList();
     }
 }

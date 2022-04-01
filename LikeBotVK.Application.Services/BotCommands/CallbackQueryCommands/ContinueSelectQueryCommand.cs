@@ -14,13 +14,13 @@ public class ContinueSelectQueryCommand : ICallbackQueryCommand
     public async Task ExecuteAsync(ITelegramBotClient client, User? user, UserData? data, CallbackQuery query,
         ServiceFacade serviceFacade)
     {
-        if (!(await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id)).Any())
+        if (!data!.CurrentJobsId.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Вы не выбрали ни одного аккаунта.");
             return;
         }
 
-        data!.State = State.SelectActionJob;
+        data.State = State.SelectActionJob;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
             "Выберите действие:", replyMarkup: JobsKeyboard.SelectActionType);

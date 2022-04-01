@@ -1,9 +1,7 @@
 using LikeBotVK.Application.Abstractions.BotServices;
 using LikeBotVK.Application.Abstractions.Configuration;
 using LikeBotVK.Application.Abstractions.Repositories;
-using LikeBotVK.Domain.Abstractions.Factories;
 using LikeBotVK.Domain.Abstractions.Repositories;
-using LikeBotVK.Domain.Abstractions.Services;
 
 namespace LikeBotVK.Application.Services;
 
@@ -14,15 +12,12 @@ public class ServiceFacade
     public readonly IVkLoginService VkLoginService;
     public readonly IPaymentService PaymentService;
     public readonly IJobScheduler JobScheduler;
+    public readonly IProxySetter ProxySetter;
     public readonly Configuration Configuration;
-    public readonly IUserJobService UserJobService;
-    public readonly IVkFactory VkFactory;
-    public readonly IJobFactory JobFactory;
 
     public ServiceFacade(IVkLoginService vkLoginService, Configuration configuration,
         IPaymentService paymentService, IJobScheduler jobScheduler, IUnitOfWork unitOfWork,
-        IApplicationDataUnitOfWork applicationDataUnitOfWork, IUserJobService jobService, IVkFactory vkFactory,
-        IJobFactory jobFactory)
+        IApplicationDataUnitOfWork applicationDataUnitOfWork, IProxySetter proxySetter)
     {
         VkLoginService = vkLoginService;
         Configuration = configuration;
@@ -30,8 +25,6 @@ public class ServiceFacade
         JobScheduler = jobScheduler;
         UnitOfWork = unitOfWork;
         ApplicationDataUnitOfWork = applicationDataUnitOfWork;
-        UserJobService = jobService;
-        VkFactory = vkFactory;
-        JobFactory = jobFactory;
+        ProxySetter = proxySetter;
     }
 }

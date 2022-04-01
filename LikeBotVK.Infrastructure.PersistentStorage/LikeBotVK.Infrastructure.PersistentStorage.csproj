@@ -7,13 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
+      <PackageReference Include="AutoMapper" Version="11.0.1" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.3" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="6.0.1" />
-      <PackageReference Include="AutoMapper" Version="11.0.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.3" />
+      <ProjectReference Include="..\LikeBotVK.Domain.Abstractions\LikeBotVK.Domain.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

@@ -36,14 +36,14 @@ public class MyJobsQueryCommand : ICallbackQueryCommand
         var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id));
 
         var works = await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
-            new VksPaginationJobsSpecification(vks.Select(vk => vk.Id).ToList(), page - 1, 1));
+            new JobsFromVkIdsSpecification(vks.Select(vk => vk.Id).ToList()), page - 1, 1);
         if (!works.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Больше нет работ.");
             return;
         }
 
-        var vk = vks.First(vk => vk.Id == works.First().Id);
+        var vk = vks.First(vk => vk.Id == works.First().VkId);
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, JobToString(works.First(), vk),
             ParseMode.Html, replyMarkup: JobsKeyboard.ActiveWorks(page, works.First()));

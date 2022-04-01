@@ -4,6 +4,7 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Domain.Jobs.Enums;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -18,9 +19,11 @@ public class SelectActionTypeQueryCommand : ICallbackQueryCommand
         ServiceFacade serviceFacade)
     {
         var type = (Type) Enum.Parse(typeof(Type), query.Data![11..]);
-        var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
-        currentWorks.ForEach(job => job.Type = type);
-        await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentWorks);
+        var currentJobs =
+            await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                new JobsFromIdsSpecification(data!.CurrentJobsId));
+        currentJobs.ForEach(job => job.Type = type);
+        await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentJobs);
         data!.State = State.EnterHashtag;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,

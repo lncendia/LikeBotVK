@@ -16,7 +16,7 @@ public class GetPublicationService : IGetPublicationService
     public GetPublicationService(IUnitOfWork unitOfWork, string token)
     {
         _unitOfWork = unitOfWork;
-        this._token = token;
+        _token = token;
     }
 
     public async Task<List<Publication>> GetPublicationsAsync(Vk vk, string hashtag, Type type, DateTime? limitTime,
@@ -25,7 +25,7 @@ public class GetPublicationService : IGetPublicationService
         if (string.IsNullOrEmpty(vk.AccessToken)) throw new VkNotActiveException(vk);
         var proxy = vk.ProxyId.HasValue ? await _unitOfWork.ProxyRepository.Value.GetAsync(vk.ProxyId.Value) : null;
         var publications = await VkApi.BuildApi(vk.AccessToken, _token, proxy).NewsFeed
-            .SearchAsync(new NewsFeedSearchParams {EndTime = limitTime, Query = hashtag});
+            .SearchAsync(new NewsFeedSearchParams {EndTime = limitTime, Query = hashtag, Count = 1000});
         var items = type switch
         {
             Type.Like => publications.Items.Where(item => item.Likes.CanLike && !item.Likes.UserLikes),

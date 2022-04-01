@@ -1,5 +1,4 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
@@ -34,16 +33,17 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
             return;
         }
 
+        var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(job.Id);
 
-        var newJob = new Job(job.VkId)
+        var newJob = new Job(vk!.Id)
         {
-            LowerInterval = job.LowerInterval,
-            UpperInterval = job.UpperInterval,
             Type = job.Type
         };
+        newJob.SetInterval(job.LowerInterval, job.UpperInterval);
+
         await serviceFacade.UnitOfWork.JobRepository.Value.AddAsync(newJob);
 
-        var newData = new JobData()
+        var newData = new JobData
         {
             JobId = newJob.Id,
             Hashtag = jobData.Hashtag,

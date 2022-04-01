@@ -30,17 +30,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<UserModel>()
             .HasMany(c => c.Payments).WithOne(c => c.User).HasForeignKey(payment => payment.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<UserModel>()
-            .HasMany(c => c.Subscribes).WithOne(c => c.User).HasForeignKey(subscribe => subscribe.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
+        
         //Vk and jobs
         modelBuilder.Entity<VkModel>().HasMany(c => c.Jobs).WithOne(j => j.Vk).HasForeignKey(j => j.VkId);
 
         modelBuilder.Entity<VkModel>().HasOne(c => c.Proxy).WithMany(proxy => proxy.Vks)
             .HasForeignKey(c => c.ProxyId).OnDelete(DeleteBehavior.SetNull);
-
         modelBuilder.Entity<JobModel>().HasMany(j => j.Publications).WithOne(p => p.JobModel);
     }
 }

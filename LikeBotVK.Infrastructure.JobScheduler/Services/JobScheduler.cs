@@ -29,8 +29,8 @@ public class JobScheduler : IJobScheduler
         return Task.FromResult(Hangfire.BackgroundJob.Delete(job.BackgroundJobId));
     }
 
-    private void StartJobAsync(int id, CancellationToken token)
+    public async Task StartJobAsync(int id, CancellationToken token)
     {
-        _jobStarterService.StartJobAsync(id, token);
+        await _jobStarterService.StartJobAsync(id, token);
     }
 }

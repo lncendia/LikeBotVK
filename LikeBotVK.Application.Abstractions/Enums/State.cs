@@ -4,7 +4,6 @@ public enum State
 {
     EnterCountToBuy,
     EnterDateLimitation,
-    EnterDivideData,
     SelectAccounts,
     EnterEditVkData,
     EnterHashtag,

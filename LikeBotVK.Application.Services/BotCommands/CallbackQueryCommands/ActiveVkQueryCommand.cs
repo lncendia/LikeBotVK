@@ -1,9 +1,9 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
+using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.VK.Exceptions;
+using LikeBotVK.Domain.VK.Entities;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -35,6 +35,7 @@ public class ActiveVkQueryCommand : ICallbackQueryCommand
         LoginResult result;
         try
         {
+            await CheckProxyAsync(vk, serviceFacade);
             result = await serviceFacade.VkLoginService.ActivateAsync(vk);
         }
         catch (ErrorActiveVkException ex)
@@ -68,8 +69,16 @@ public class ActiveVkQueryCommand : ICallbackQueryCommand
                 data.State = State.Main;
                 break;
         }
+
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
     }
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("active");
+
+    private static async Task CheckProxyAsync(Vk vk, ServiceFacade facade)
+    {
+        if (vk.ProxyId == null)
+            if (await facade.ProxySetter.SetProxyAsync(vk))
+                await facade.UnitOfWork.VkRepository.Value.UpdateAsync(vk);
+    }
 }

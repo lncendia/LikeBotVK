@@ -1,5 +1,4 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Extensions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
@@ -23,24 +22,18 @@ public class MyVkQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id));
-        if (vks.Any())
-        {
-            var vk = vks.First();
-            var count = vk.Password.Length / 2;
-            var offsetLength = (vk.Password.Length - count) / 2;
 
-            var password = (vk.Password[..offsetLength] + new string('*', count) +
-                            vk.Password[(offsetLength + count)..]).ToHtmlStyle();
-            await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
-                $"Имя пользователя: <code>{vk.Username.ToHtmlStyle()}</code>\nПароль: <code>{password}</code>",
-                ParseMode.Html, replyMarkup: VkKeyboard.VkMain(vk));
+        int page = int.Parse(query.Data![6..]);
+        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id),
+            (page - 1) * 10, 10);
+        if (!vks.Any())
+        {
+            await client.AnswerCallbackQueryAsync(query.Id, "У вас нет аккаунтов на этой странице.");
+            return;
         }
 
-
-        for (var i = 1; i < vks.Count; i++)
+        foreach (var vk in vks)
         {
-            var vk = vks[i];
             var count = vk.Password.Length / 2;
             var offsetLength = (vk.Password.Length - count) / 2;
 
@@ -53,5 +46,5 @@ public class MyVkQueryCommand : ICallbackQueryCommand
         }
     }
 
-    public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data == "myInstagrams";
+    public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("myVks");
 }

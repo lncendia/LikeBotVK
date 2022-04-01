@@ -1,9 +1,7 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Payments.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -30,8 +28,8 @@ public class MyPaymentsQueryCommand : ICallbackQueryCommand
         }
 
         var payments =
-            await serviceFacade.UnitOfWork.PaymentRepository.Value.FindAsync(
-                new UserPaginationPaymentsSpecification(user!.Id, (page - 1) * 5, 5));
+            await serviceFacade.ApplicationDataUnitOfWork.PaymentDataRepository.Value.GetUserPaymentsAsync(user!.Id,
+                (page - 1) * 5, 5);
         if (!payments.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Больше нет платежей.");

@@ -2,7 +2,6 @@ using System.Net;
 using LikeBotVK.Application.Abstractions.BotServices;
 using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Exceptions;
-using LikeBotVK.Domain.Payments.Entities;
 using Newtonsoft.Json;
 using Qiwi.BillPayments.Client;
 using Qiwi.BillPayments.Model;

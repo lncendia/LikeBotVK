@@ -17,23 +17,16 @@ public static class Infrastructure
         {
             options.UseSqlServer(
                 configuration.DatabaseConfiguration.BaseConnection + configuration.DatabaseConfiguration.DomainDb,
-                optionsBuilder =>
-                {
-                    optionsBuilder.EnableRetryOnFailure(1);
-                    optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                });
+                optionsBuilder => { optionsBuilder.EnableRetryOnFailure(1); });
         });
 
         services.AddDbContext<LikeBotVK.Infrastructure.ApplicationData.Context.ApplicationDbContext>(options =>
         {
             options.UseSqlServer(
                 configuration.DatabaseConfiguration.BaseConnection + configuration.DatabaseConfiguration.ApplicationDb,
-                optionsBuilder =>
-                {
-                    optionsBuilder.EnableRetryOnFailure(1);
-                    optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                });
+                optionsBuilder => { optionsBuilder.EnableRetryOnFailure(1); });
         });
+        
         services.AddHangfire((_, globalConfiguration) =>
         {
             globalConfiguration.UseSqlServerStorage(

@@ -10,29 +10,44 @@ public class Job
     }
 
     public int Id { get; set; }
-    public int VkId { get; set; }
-    public List<Publication> Publications { get; set; } = new();
-    public int UpperInterval { get; set; }
-    public int LowerInterval { get; set; }
+    public int VkId { get; }
+
+    private readonly List<Publication> _publications = new();
+
+    public List<Publication> Publications => _publications.ToList();
+
+    public int UpperInterval { get; private set; }
+    public int LowerInterval { get; private set; }
     public LikeBotVK.Domain.Jobs.Enums.Type Type { get; set; }
     public DateTime? StartTime { get; set; }
-    public bool IsCompleted { get; set; }
+    public bool IsCompleted { get; private set; }
 
     public string? ErrorMessage { get; set; }
-    public int CountErrors { get; set; }
-    public int CountSuccess { get; set; }
-
-    public void SetPublications(List<Publication> publications) => Publications = publications;
+    public int CountErrors { get; private set; }
+    public int CountSuccess { get; private set; }
 
     public void SetInterval(int lower, int upper)
     {
+        if (lower > upper) throw new ArgumentException("Lower delay can't be bigger then upper.", nameof(lower));
         LowerInterval = lower;
         UpperInterval = upper;
     }
 
+    public void UpdateInfo(int errors, int success)
+    {
+        if (errors + success < _publications.Count)
+            throw new ArgumentException("Count errors and success can't be bigger then publications count.",
+                nameof(errors));
+        if (errors < CountErrors || success < CountSuccess)
+            throw new ArgumentException("The information cannot be reduced.");
+        CountErrors = errors;
+        CountSuccess = success;
+    }
+
     public void CompleteJob() => IsCompleted = true;
+    public void AddPublications(IEnumerable<Publication> publications) => _publications.AddRange(publications);
 
     private readonly Random _random = new();
 
-    public Task Delay(CancellationToken token) => Task.Delay(_random.Next(LowerInterval, UpperInterval), token);
+    public Task Delay(CancellationToken token) => Task.Delay(_random.Next(LowerInterval, UpperInterval) * 1000, token);
 }

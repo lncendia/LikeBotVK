@@ -1,9 +1,9 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -23,17 +23,24 @@ public class SelectAccountQueryCommand : ICallbackQueryCommand
             return;
         }
 
+        var currentJobs =
+            await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                new JobsFromIdsSpecification(data!.CurrentJobsId));
 
-        var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user.Id);
-
-        if (currentWorks.Count >= user.Subscribes.Count || currentWorks.Any(job => job.VkId == vk.Id))
+        if (currentJobs.Count >= data.ActiveSubscribesCount() || currentJobs.Any(job => job.VkId == vk.Id))
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Вы не можете добавить этот аккаунт.");
             return;
         }
 
-        var job = await serviceFacade.JobFactory.CreateJobAsync(vk.Id);
+        var job = new Job(vk.Id);
         await serviceFacade.UnitOfWork.JobRepository.Value.AddAsync(job);
+        await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(new JobData
+            {JobId = job.Id});
+
+        data.CurrentJobsId.Add(job.Id);
+        await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
+
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, "Выберите аккаунты:",
             replyMarkup: JobsKeyboard.NewSelect(query.Message.ReplyMarkup!.InlineKeyboard.ToList()!, query.Data));

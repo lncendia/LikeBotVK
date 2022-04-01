@@ -3,13 +3,14 @@ using LikeBotVK.Application.Abstractions.Extensions;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Jobs.Entities;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
 namespace LikeBotVK.Application.Services.Services;
 
 public class JobNotifierService : IJobNotifierService
 {
-    private ITelegramBotClient _telegramBotClient;
-    private IUnitOfWork _unitOfWork;
+    private readonly ITelegramBotClient _telegramBotClient;
+    private readonly IUnitOfWork _unitOfWork;
 
     public JobNotifierService(ITelegramBotClient telegramBotClient, IUnitOfWork unitOfWork)
     {
@@ -24,7 +25,8 @@ public class JobNotifierService : IJobNotifierService
         try
         {
             await _telegramBotClient.SendTextMessageAsync(user!.Id,
-                $"Запущена работа №<code>{job.Id}</code>\nАккаунт: <code>{vk.Username}</code>\n<b>Получение публикаций...</b>");
+                $"Запущена работа №<code>{job.Id}</code>\nАккаунт: <code>{vk.Username}</code>\n<b>Получение публикаций...</b>",
+                ParseMode.Html);
         }
         catch
         {
@@ -42,7 +44,7 @@ public class JobNotifierService : IJobNotifierService
             message += $"\nПоследняя ошибка: <code>{job.ErrorMessage.ToHtmlStyle()}</code>";
         try
         {
-            await _telegramBotClient.SendTextMessageAsync(user!.Id, message);
+            await _telegramBotClient.SendTextMessageAsync(user!.Id, message, ParseMode.Html);
         }
         catch
         {

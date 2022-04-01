@@ -30,22 +30,23 @@ public class JobProcessorService : IJobProcessorService
         for (var i = startIndex; i < job.Publications.Count; i++)
         {
             await job.Delay(token);
-            var task = job.Type switch
-            {
-                Type.Like => _functionsService.LikeAsync(vk, job.Publications[i]),
-                Type.Subscribe => _functionsService.FollowAsync(vk, job.Publications[i]),
-                Type.Repost => _functionsService.RepostAsync(vk, job.Publications[i]),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+            var task = Task.CompletedTask;
+            // job.Type switch
+            // {
+            //     Type.Like => _functionsService.LikeAsync(vk, job.Publications[i]),
+            //     Type.Subscribe => _functionsService.FollowAsync(vk, job.Publications[i]),
+            //     Type.Repost => _functionsService.RepostAsync(vk, job.Publications[i]),
+            //     _ => throw new ArgumentOutOfRangeException()
+            // };
 
             try
             {
                 await task;
-                job.CountSuccess++;
+                job.UpdateInfo(job.CountErrors, job.CountSuccess + 1);
             }
             catch (Exception ex)
             {
-                job.CountErrors++;
+                job.UpdateInfo(job.CountErrors + 1, job.CountSuccess);
                 job.ErrorMessage = ex.Message;
             }
 

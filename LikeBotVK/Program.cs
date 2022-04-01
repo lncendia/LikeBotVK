@@ -45,7 +45,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
-app.UseHangfireDashboard($"/{builder.Configuration["BotConfiguration:Token"]}/hangfire",
+app.UseHangfireDashboard($"/{configuration.BotConfiguration.TelegramToken}/hangfire",
     new DashboardOptions
     {
         AppPath = $"/{configuration.BotConfiguration.TelegramToken}",

@@ -1,9 +1,7 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Users.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,7 +14,7 @@ public class EnterMessageToMailingCommand : ITextCommand
     public async Task ExecuteAsync(ITelegramBotClient client, User? user, UserData? data, Message message,
         ServiceFacade serviceFacade)
     {
-        var users = await serviceFacade.UnitOfWork.UserRepository.Value.FindAsync(new AllUsersSpecification());
+        var users = await serviceFacade.UnitOfWork.UserRepository.Value.FindAsync(null);
         IEnumerable<Task<Message>> tasks;
         switch (message.Type)
         {

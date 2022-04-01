@@ -10,8 +10,10 @@ public class ApplicationUnitOfWork : IApplicationDataUnitOfWork
     {
         JobDataRepository = new Lazy<IJobDataRepository>(() => new JobDataRepository(context));
         UserDataRepository = new Lazy<IUserDataRepository>(() => new UserDataRepository(context));
+        PaymentDataRepository = new Lazy<IPaymentDataRepository>(() => new PaymentDataRepository(context));
     }
 
     public Lazy<IJobDataRepository> JobDataRepository { get; set; }
     public Lazy<IUserDataRepository> UserDataRepository { get; set; }
+    public Lazy<IPaymentDataRepository> PaymentDataRepository { get; set; }
 }

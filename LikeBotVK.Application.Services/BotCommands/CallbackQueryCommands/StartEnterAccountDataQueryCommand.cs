@@ -1,5 +1,4 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
@@ -24,9 +23,9 @@ public class StartEnterAccountDataQueryCommand : ICallbackQueryCommand
 
         var count = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(new UserVksSpecification(user!.Id));
 
-        if (count >= user.Subscribes.Count)
+        if (count >= 50)
         {
-            await client.AnswerCallbackQueryAsync(query.Id, "У вас нет доступных подписок.");
+            await client.AnswerCallbackQueryAsync(query.Id, "Нельзя добавить больше 50 аккаунтов.");
             return;
         }
 

@@ -1,10 +1,12 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
+using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification;
-using LikeBotVK.Domain.VK.Exceptions;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
+using LikeBotVK.Domain.Specifications;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -32,8 +34,9 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(new VkNotFinishedJobsSpecification(vk.Id)) >
-            0)
+        var specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
+        if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(specification) > 0)
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
                 "На этом аккаунте есть незавершенные задачи.");

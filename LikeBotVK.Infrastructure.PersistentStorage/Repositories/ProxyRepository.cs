@@ -1,11 +1,11 @@
-using Ardalis.Specification;
-using Ardalis.Specification.EntityFrameworkCore;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Proxies.Entities;
+using LikeBotVK.Domain.Proxies.Specification.Visitor;
+using LikeBotVK.Domain.Specifications;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
+using LikeBotVK.Infrastructure.PersistentStorage.Visitors;
 using Microsoft.EntityFrameworkCore;
 
 namespace LikeBotVK.Infrastructure.PersistentStorage.Repositories;
@@ -21,19 +21,12 @@ public class ProxyRepository : IProxyRepository
         _mapper = GetMapper();
     }
 
-    public Task<List<Proxy>> FindAsync(ISpecification<Proxy> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Proxies.ProjectTo<Proxy>(_mapper.ConfigurationProvider), specification).ToListAsync();
-
-    public Task<int> CountAsync(ISpecification<Proxy> specification) =>
-        SpecificationEvaluator.Default
-            .GetQuery(_context.Proxies.ProjectTo<Proxy>(_mapper.ConfigurationProvider), specification).CountAsync();
-
     public async Task AddAsync(Proxy entity)
     {
         var proxy = _mapper.Map<ProxyModel>(entity);
         await _context.AddAsync(proxy);
         await _context.SaveChangesAsync();
+        entity.Id = proxy.Id;
     }
 
     public async Task AddRangeAsync(List<Proxy> entities)
@@ -41,6 +34,7 @@ public class ProxyRepository : IProxyRepository
         var proxies = _mapper.Map<List<ProxyModel>>(entities);
         await _context.AddRangeAsync(proxies);
         await _context.SaveChangesAsync();
+        for (int i = 0; i < entities.Count; i++) entities[i].Id = proxies[i].Id;
     }
 
     public Task UpdateAsync(Proxy entity)
@@ -72,8 +66,39 @@ public class ProxyRepository : IProxyRepository
         return _context.SaveChangesAsync();
     }
 
-    public Task<Proxy?> GetAsync(int id) => _context.Proxies.ProjectTo<Proxy>(_mapper.ConfigurationProvider)
-        .FirstOrDefaultAsync(model => model.Id == id);
+    public async Task<Proxy?> GetAsync(int id)
+    {
+        var proxy = await _context.Proxies.FirstOrDefaultAsync(model => model.Id == id);
+        return proxy == null ? null : _mapper.Map<ProxyModel, Proxy>(proxy);
+    }
+
+    public async Task<List<Proxy>> FindAsync(ISpecification<Proxy, IProxySpecificationVisitor>? specification,
+        int? skip = null, int? take = null)
+    {
+        var query = _context.Proxies.AsQueryable();
+        if (specification != null)
+        {
+            var visitor = new ProxyVisitor();
+            specification.Accept(visitor);
+            if (visitor.Expr != null) query = query.Where(visitor.Expr);
+        }
+
+        if (skip.HasValue) query = query.Skip(skip.Value);
+        if (take.HasValue) query = query.Take(take.Value);
+
+        return _mapper.Map<List<ProxyModel>, List<Proxy>>(await query.ToListAsync());
+    }
+
+    public Task<int> CountAsync(ISpecification<Proxy, IProxySpecificationVisitor>? specification)
+    {
+        var query = _context.Proxies.AsQueryable();
+        if (specification == null) return query.CountAsync();
+        var visitor = new ProxyVisitor();
+        specification.Accept(visitor);
+        if (visitor.Expr != null) query = query.Where(visitor.Expr);
+
+        return query.CountAsync();
+    }
 
     private static IMapper GetMapper()
     {

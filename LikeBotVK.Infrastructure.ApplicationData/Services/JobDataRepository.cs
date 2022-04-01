@@ -32,23 +32,15 @@ public class JobDataRepository : IJobDataRepository
         var jobData = _context.JobsData.FirstOrDefault(data1 => data1.JobId == data.JobId);
         if (jobData == null)
         {
-            await _context.AddAsync(new Models.JobData()
-            {
-                JobId = data.JobId,
-                BackgroundJobId = data.BackgroundJobId,
-                DateTimeLimitation = data.DateTimeLimitation,
-                Hashtag = data.Hashtag,
-                WorkType = data.WorkType
-            });
+            jobData = new Models.JobData();
+            await _context.AddAsync(jobData);
         }
-        else
-        {
-            jobData.JobId = data.JobId;
-            jobData.BackgroundJobId = data.BackgroundJobId;
-            jobData.DateTimeLimitation = data.DateTimeLimitation;
-            jobData.Hashtag = data.Hashtag;
-            jobData.WorkType = data.WorkType;
-        }
+
+        jobData.JobId = data.JobId;
+        jobData.BackgroundJobId = data.BackgroundJobId;
+        jobData.DateTimeLimitation = data.DateTimeLimitation;
+        jobData.Hashtag = data.Hashtag;
+        jobData.WorkType = data.WorkType;
 
         await _context.SaveChangesAsync();
     }

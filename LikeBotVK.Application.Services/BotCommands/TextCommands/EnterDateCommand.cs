@@ -1,9 +1,10 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
+using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Domain.Jobs.Exceptions;
+using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -19,15 +20,17 @@ public class EnterDateCommand : ITextCommand
         if (TimeSpan.TryParse(message.Text, out var timeSpan))
         {
             var timeEnter = DateTimeOffset.Now.Add(timeSpan.Duration());
-            var currentWorks = await serviceFacade.UserJobService.GetUserNotStartedJobs(user!.Id);
-            if (!currentWorks.Any())
+            var currentJobs =
+                await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
+                    new JobsFromIdsSpecification(data!.CurrentJobsId));
+            if (!currentJobs.Any())
             {
                 await client.SendTextMessageAsync(message.From!.Id, "Ошибка. Работы отсутсвтуют.",
                     replyMarkup: MainKeyboard.Main);
                 return;
             }
 
-            foreach (var job in currentWorks)
+            foreach (var job in currentJobs)
             {
                 try
                 {
@@ -44,9 +47,9 @@ public class EnterDateCommand : ITextCommand
                 }
             }
 
-            await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentWorks);
+            await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentJobs);
 
-            data!.State = State.Main;
+            data.State = State.Main;
             await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
             await client.SendTextMessageAsync(message.From!.Id, "Задача успешно запущена, вы в главном меню.");
         }
