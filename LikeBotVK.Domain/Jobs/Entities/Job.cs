@@ -19,7 +19,7 @@ public class Job
     public int UpperInterval { get; private set; }
     public int LowerInterval { get; private set; }
     public LikeBotVK.Domain.Jobs.Enums.Type Type { get; set; }
-    public DateTime? StartTime { get; set; }
+    public DateTime? StartTime { get; private set; }
     public bool IsCompleted { get; private set; }
 
     public string? ErrorMessage { get; set; }
@@ -35,7 +35,7 @@ public class Job
 
     public void UpdateInfo(int errors, int success)
     {
-        if (errors + success < _publications.Count)
+        if (errors + success > _publications.Count)
             throw new ArgumentException("Count errors and success can't be bigger then publications count.",
                 nameof(errors));
         if (errors < CountErrors || success < CountSuccess)
@@ -44,7 +44,14 @@ public class Job
         CountSuccess = success;
     }
 
-    public void CompleteJob() => IsCompleted = true;
+    public void MarkAsStarted() => StartTime = DateTime.UtcNow;
+
+    public void MarkAsCompleted()
+    {
+        if (!StartTime.HasValue) MarkAsStarted();
+        IsCompleted = true;
+    }
+
     public void AddPublications(IEnumerable<Publication> publications) => _publications.AddRange(publications);
 
     private readonly Random _random = new();

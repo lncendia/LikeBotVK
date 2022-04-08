@@ -1,8 +1,5 @@
 using System.Linq.Expressions;
-using LikeBotVK.Domain.Proxies.Entities;
-using LikeBotVK.Domain.Proxies.Specification;
-using LikeBotVK.Domain.Proxies.Specification.Visitor;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Domain.Users.Entities;
 using LikeBotVK.Domain.Users.Specification.Visitor;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;

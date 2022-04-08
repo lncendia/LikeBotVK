@@ -2,6 +2,7 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -42,7 +43,7 @@ public class EnterIntervalCommand : ITextCommand
         data.State = State.EnterDateLimitation;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id,
-            "Введите дату до которой необходимо получать публикации (в UTC). Формат: <code>yyyy MM dd HH:mm:ss</code>",
+            "Введите дату до которой необходимо получать публикации (по МСК). Формат: <code>dd.MM.yy H:mm:ss</code>",
             ParseMode.Html, replyMarkup: JobsKeyboard.SkipDataLimitation);
     }
 

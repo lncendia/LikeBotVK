@@ -1,6 +1,6 @@
 using LikeBotVK.Domain.Proxies.Entities;
 using LikeBotVK.Domain.Proxies.Specification.Visitor;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 
 namespace LikeBotVK.Domain.Proxies.Specification;
 

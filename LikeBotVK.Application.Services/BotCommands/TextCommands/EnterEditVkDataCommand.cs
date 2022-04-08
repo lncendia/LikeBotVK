@@ -1,8 +1,8 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -40,7 +40,8 @@ public class EnterEditVkDataCommand : ITextCommand
         vk.ChangeData(dataVk[0], dataVk[1]);
         await serviceFacade.UnitOfWork.VkRepository.Value.UpdateAsync(vk);
 
-        data!.State = State.Main;
+        data.CurrentVkId = null;
+        data.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
 
         await client.SendTextMessageAsync(message.Chat.Id, "Аккаунт успешно изменён.");

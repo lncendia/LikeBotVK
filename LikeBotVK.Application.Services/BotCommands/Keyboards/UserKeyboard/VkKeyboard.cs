@@ -65,7 +65,7 @@ public static class VkKeyboard
         List<List<InlineKeyboardButton>> buttons = new();
         count /= 10;
         count++;
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             buttons.Add(new List<InlineKeyboardButton>
             {

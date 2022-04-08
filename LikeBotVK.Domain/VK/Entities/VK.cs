@@ -23,6 +23,7 @@ public class Vk
 
     public void ChangeData(string login, string password)
     {
+        AccessToken = null;
         Username = login;
         Password = password;
     }

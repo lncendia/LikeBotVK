@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification;
 using LikeBotVK.Domain.Jobs.Specification.Visitor;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
 
 namespace LikeBotVK.Infrastructure.PersistentStorage.Visitors;

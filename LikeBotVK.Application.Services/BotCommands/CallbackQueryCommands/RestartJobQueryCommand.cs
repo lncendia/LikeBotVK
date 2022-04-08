@@ -2,6 +2,7 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Entities;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -20,7 +21,7 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var id = int.Parse(query.Data![14..]);
+        var id = int.Parse(query.Data![12..]);
         var t1 = serviceFacade.UnitOfWork.JobRepository.Value.GetAsync(id);
         var t2 = serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(id);
         await Task.WhenAll(t1, t2);
@@ -33,7 +34,7 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(job.Id);
+        var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(job.VkId);
 
         var newJob = new Job(vk!.Id)
         {
@@ -43,15 +44,15 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
 
         await serviceFacade.UnitOfWork.JobRepository.Value.AddAsync(newJob);
 
-        var newData = new JobData
+        var newData = new JobData(newJob.Id)
         {
-            JobId = newJob.Id,
             Hashtag = jobData.Hashtag,
             DateTimeLimitation = jobData.DateTimeLimitation,
             WorkType = WorkType.Simple
         };
         await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(newData);
 
+        data.CurrentJobsId.Add(newJob.Id);
         data.State = State.SelectTimeMode;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
 
@@ -59,5 +60,5 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
             "Выберите действие:", replyMarkup: JobsKeyboard.StartWork);
     }
 
-    public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data == "workRestart";
+    public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("workRestart");
 }

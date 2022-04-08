@@ -1,9 +1,8 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.VK.Entities;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -39,7 +38,7 @@ public class EnterTwoFactorCommand : ITextCommand
         {
             await client.SendTextMessageAsync(message.From!.Id,
                 $"Ошибка при отправке запроса ({ex.Message}). Попробуйте войти ещё раз.");
-            data!.State = State.Main;
+            data.State = State.Main;
             await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
             return;
         }

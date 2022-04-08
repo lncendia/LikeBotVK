@@ -1,8 +1,8 @@
 using System.Net;
 using LikeBotVK.Domain.Proxies.Entities;
 using LikeBotVK.Domain.VK.Entities;
-using LikeBotVK.Infrastructure.PublicationsGetter.Exceptions;
 using LikeBotVK.Infrastructure.VkAuthentication.AntiCaptcha;
+using LikeBotVK.Infrastructure.VkAuthentication.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using VkNet.AudioBypassService.Extensions;
 using VkNet.Model;
@@ -51,7 +51,7 @@ public class VkApi
         services.AddAudioBypass();
         services.AddScoped<ICaptchaSolver, CaptchaSolver>(_ => new CaptchaSolver(_antiCaptchaToken));
         if (proxy != null)
-            services.AddSingleton(_ => VkApi.GetHttpClientWithProxy(proxy));
+            services.AddSingleton(_ => GetHttpClientWithProxy(proxy));
         var api = new VkNet.VkApi(services);
 
         await api.AuthorizeAsync(new ApiAuthParams

@@ -1,6 +1,6 @@
 using Hangfire;
 using Hangfire.SqlServer;
-using LikeBotVK.Application.Abstractions.BotServices;
+using LikeBotVK.Application.Abstractions.Services.BotServices;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -26,7 +26,7 @@ public static class Infrastructure
                 configuration.DatabaseConfiguration.BaseConnection + configuration.DatabaseConfiguration.ApplicationDb,
                 optionsBuilder => { optionsBuilder.EnableRetryOnFailure(1); });
         });
-        
+
         services.AddHangfire((_, globalConfiguration) =>
         {
             globalConfiguration.UseSqlServerStorage(
@@ -43,13 +43,8 @@ public static class Infrastructure
 
             globalConfiguration.UseSerializerSettings(new JsonSerializerSettings
                 {ReferenceLoopHandling = ReferenceLoopHandling.Ignore});
-            RecurringJob.AddOrUpdate("subscribesChecker",
-                () => _.CreateScope().ServiceProvider.GetService<ISubscribeDeleter>()!.DeleteAsync(),
-                Cron.Daily);
-
-            RecurringJob.AddOrUpdate("worksChecker",
-                () => _.CreateScope().ServiceProvider.GetService<IWorkDeleter>()!.DeleteAsync(),
-                Cron.Daily);
+            RecurringJob.AddOrUpdate<ISubscribeDeleter>("subscribesChecker", x => x.DeleteAsync(), Cron.Daily);
+            RecurringJob.AddOrUpdate<IWorkDeleter>("worksChecker", x => x.DeleteAsync(), Cron.Daily);
         });
         services.AddHangfireServer(options => options.WorkerCount = Environment.ProcessorCount * 15);
 

@@ -24,20 +24,19 @@ public class JobProcessorService : IJobProcessorService
         if (vk == null) throw new JobVkNotFoundException(job);
         if (string.IsNullOrEmpty(vk.AccessToken)) throw new VkNotActiveException(vk);
         if (job.Publications == null || !job.Publications.Any()) throw new PublicationsCollectionEmptyException(job);
-        job.StartTime = DateTime.UtcNow;
+        job.MarkAsStarted();
         await _unitOfWork.JobRepository.Value.UpdateAsync(job);
         var startIndex = job.CountSuccess + job.CountErrors;
         for (var i = startIndex; i < job.Publications.Count; i++)
         {
             await job.Delay(token);
-            var task = Task.CompletedTask;
-            // job.Type switch
-            // {
-            //     Type.Like => _functionsService.LikeAsync(vk, job.Publications[i]),
-            //     Type.Subscribe => _functionsService.FollowAsync(vk, job.Publications[i]),
-            //     Type.Repost => _functionsService.RepostAsync(vk, job.Publications[i]),
-            //     _ => throw new ArgumentOutOfRangeException()
-            // };
+            var task = job.Type switch
+            {
+                Type.Like => _functionsService.LikeAsync(vk, job.Publications[i]),
+                Type.Subscribe => _functionsService.FollowAsync(vk, job.Publications[i]),
+                Type.Repost => _functionsService.RepostAsync(vk, job.Publications[i]),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
             try
             {
@@ -50,6 +49,7 @@ public class JobProcessorService : IJobProcessorService
                 job.ErrorMessage = ex.Message;
             }
 
+            token.ThrowIfCancellationRequested();
             await _unitOfWork.JobRepository.Value.UpdateAsync(job);
         }
     }

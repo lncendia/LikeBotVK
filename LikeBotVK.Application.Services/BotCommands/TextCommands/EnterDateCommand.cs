@@ -3,7 +3,7 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Jobs.Exceptions;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -32,16 +32,20 @@ public class EnterDateCommand : ITextCommand
 
             foreach (var job in currentJobs)
             {
+                var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
                 try
                 {
-                    var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
                     if (dataJob == null) throw new ErrorStartJobException(job, "Jobs data not found", null);
                     await serviceFacade.JobScheduler.ScheduleWorkAsync(dataJob, timeEnter);
                     await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(dataJob);
+
+                    if (dataJob.WorkType == WorkType.Divide)
+                        await JobDivider.StartDivideJobs(job, dataJob, serviceFacade, timeEnter.UtcDateTime);
                 }
                 catch (ErrorStartJobException ex)
                 {
-                    await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(job.Id);
+                    if (dataJob != null)
+                        await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(dataJob);
                     await serviceFacade.UnitOfWork.JobRepository.Value.DeleteAsync(job);
                     await client.SendTextMessageAsync(message.From!.Id, $"Не удалось запустить работу: {ex.Message}.");
                 }
@@ -49,6 +53,7 @@ public class EnterDateCommand : ITextCommand
 
             await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentJobs);
 
+            data.CurrentJobsId.Clear();
             data.State = State.Main;
             await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
             await client.SendTextMessageAsync(message.From!.Id, "Задача успешно запущена, вы в главном меню.");

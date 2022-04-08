@@ -1,4 +1,4 @@
-namespace LikeBotVK.Infrastructure.PublicationsGetter.Exceptions;
+namespace LikeBotVK.Infrastructure.VkAuthentication.Exceptions;
 
 public class TwoFactorRequiredException : Exception
 {

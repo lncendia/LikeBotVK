@@ -1,5 +1,5 @@
 using LikeBotVK.Domain.VK.Entities;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Domain.VK.Specification.Visitor;
 
 namespace LikeBotVK.Domain.VK.Specification;

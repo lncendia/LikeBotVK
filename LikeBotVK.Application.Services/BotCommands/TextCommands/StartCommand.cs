@@ -1,8 +1,8 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -19,7 +19,7 @@ public class StartCommand : ITextCommand
         ServiceFacade serviceFacade)
     {
         user = new User {Id = message.From!.Id};
-        data = new UserData {UserId = message.From.Id, State = State.Main};
+        data = new UserData(message.From.Id, State.Main);
         if (message.Text!.Length > 7 && long.TryParse(message.Text[7..], out var id)) data.ReferralId = id;
         var t1 = serviceFacade.UnitOfWork.UserRepository.Value.AddAsync(user);
         var t2 = serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);

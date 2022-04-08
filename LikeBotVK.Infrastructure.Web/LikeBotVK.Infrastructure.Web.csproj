@@ -7,25 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
+        <ProjectReference Include="..\LikeBotVK.Application.Abstractions\LikeBotVK.Application.Abstractions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AutoMapper" Version="11.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" Version="2.2.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Views\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Remove="Views\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="Views\**" />
+        <PackageReference Include="AutoMapper" Version="11.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.TagHelpers" Version="2.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
     </ItemGroup>
 
 </Project>

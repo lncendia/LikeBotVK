@@ -1,5 +1,4 @@
 using System.Net;
-using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Domain.Proxies.Entities;
 using LikeBotVK.Infrastructure.PublicationsGetter.AntiCaptcha;
 using Microsoft.Extensions.DependencyInjection;

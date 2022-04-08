@@ -2,6 +2,10 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
+using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
 using LikeBotVK.Domain.Specifications;
 using LikeBotVK.Domain.VK.Entities;
 using LikeBotVK.Domain.VK.Specification;
@@ -23,14 +27,33 @@ public class StartWorkingQueryCommand : ICallbackQueryCommand
             return;
         }
 
+        if (data.ActiveSubscribesCount() == 0)
+        {
+            await client.AnswerCallbackQueryAsync(query.Id, "Для начала необходимо приобрести подписки.");
+            return;
+        }
+
         var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(
             new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVksSpecification(user!.Id),
                 new ActiveVksSpecification()));
-        if (vks.Count == 0)
+        if (!vks.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "У вас нет активированных аккаунтов.");
             return;
         }
+
+        var spec = new AndSpecification<Job, IJobSpecificationVisitor>(
+            new JobsFromVkIdsSpecification(vks.Select(vk => vk.Id).ToList()),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
+        var notFinishedJobs =
+            (await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(spec)).Select(job => job.VkId).ToList();
+        vks.RemoveAll(vk => notFinishedJobs.Contains(vk.Id));
+        if (!vks.Any())
+        {
+            await client.AnswerCallbackQueryAsync(query.Id, "Все аккаунты уже в работе.");
+            return;
+        }
+
 
         data.State = State.SelectAccounts;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);

@@ -1,9 +1,9 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Extensions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification;
 using LikeBotVK.Domain.VK.Entities;
@@ -43,16 +43,24 @@ public class MyJobsQueryCommand : ICallbackQueryCommand
             return;
         }
 
+        var jobData = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(works.First().Id);
+        if (jobData?.Hashtag == null)
+        {
+            await client.AnswerCallbackQueryAsync(query.Id, "Не удалось получить данные о работе.");
+            return;
+        }
+
         var vk = vks.First(vk => vk.Id == works.First().VkId);
 
-        await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, JobToString(works.First(), vk),
+        await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
+            JobToString(works.First(), jobData, vk),
             ParseMode.Html, replyMarkup: JobsKeyboard.ActiveWorks(page, works.First()));
     }
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("worksHistory");
 
 
-    private static string JobToString(Job job, Vk vk)
+    private static string JobToString(Job job, JobData data, Vk vk)
     {
         var typeString = job.Type switch
         {
@@ -63,16 +71,23 @@ public class MyJobsQueryCommand : ICallbackQueryCommand
         };
 
         var workString =
-            $"Работа №<code>{job.Id}</code>\n{typeString}\nАккаунт: <code>{vk.Username}</code>\nИнтервал: <code>{job.LowerInterval}:{job.UpperInterval}</code>";
-
-        if (job.StartTime.HasValue)
+            $"Работа №<code>{job.Id}</code>\n{typeString}\nАккаунт: <code>{vk.Username}</code>\nХештег: <code>{data.Hashtag}</code>\nИнтервал: <code>{job.LowerInterval}:{job.UpperInterval}</code>";
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+        if (data.DateTimeLimitation.HasValue)
             workString +=
-                $"\nВремя начала: <code>{job.StartTime.Value.ToString("g")}</code>\nПользователей всего: <code>{job.Publications.Count}</code>\nЗавершена: <code>{(job.IsCompleted ? "Да" : "Нет")}</code >\n";
+                $"\nОграничение: <code>{TimeZoneInfo.ConvertTimeFromUtc(data.DateTimeLimitation.Value, tz)}</code>";
+        if (job.StartTime.HasValue)
+        {
+            workString +=
+                $"\nВремя начала: <code>{TimeZoneInfo.ConvertTimeFromUtc(job.StartTime.Value, tz).ToString("g")}</code>\nПубликаций всего: <code>{job.Publications.Count}</code>\nЗавершена: <code>{(job.IsCompleted ? "Да" : "Нет")}</code >";
 
-        if (!string.IsNullOrEmpty(job.ErrorMessage))
-            workString += $"\nПоследняя ошибка: <code>{job.ErrorMessage.ToHtmlStyle()}</code>";
-        if (job.IsCompleted)
-            workString += $"\nУспешно: <code>{(job.CountErrors < job.CountSuccess ? "Да" : "Нет")}</code>";
+            workString +=
+                $"\nУспешно: <code>{job.CountSuccess}</code>";
+            if (!string.IsNullOrEmpty(job.ErrorMessage))
+                workString +=
+                    $"\nОшибок: <code>{job.CountErrors}</code>\nПоследняя ошибка: <code>{job.ErrorMessage.ToHtmlStyle()}</code>";
+        }
+        else workString += "\n\n<b>Ещё не началась</b>";
 
         return workString;
     }

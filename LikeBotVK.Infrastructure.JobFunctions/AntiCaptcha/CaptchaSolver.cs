@@ -1,4 +1,3 @@
-using System.Net;
 using CaptchaSharp;
 using CaptchaSharp.Enums;
 using CaptchaSharp.Models;
@@ -32,5 +31,5 @@ public class CaptchaSolver : ICaptchaSolver
         return captcha.Response;
     }
 
-    public void CaptchaIsFalse() => _service.ReportSolution(_id, CaptchaType.ImageCaptcha, false);
+    public void CaptchaIsFalse() => _service.ReportSolution(_id, CaptchaType.ImageCaptcha);
 }

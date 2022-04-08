@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Domain.VK.Entities;
 using LikeBotVK.Domain.VK.Specification;
 using LikeBotVK.Domain.VK.Specification.Visitor;

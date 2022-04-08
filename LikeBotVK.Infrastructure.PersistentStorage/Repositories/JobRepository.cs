@@ -3,7 +3,7 @@ using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification.Visitor;
 using LikeBotVK.Domain.Jobs.ValueObjects;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
 using LikeBotVK.Infrastructure.PersistentStorage.EqualityComparers;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
@@ -31,6 +31,14 @@ public class JobRepository : IJobRepository
         entity.Id = job.Id;
     }
 
+
+    private Job GetMap(JobModel entity)
+    {
+        var job = _mapper.Map<Job>(entity);
+        job.AddPublications(_mapper.Map<List<PublicationModel>, List<Publication>>(entity.Publications));
+        return job;
+    }
+
     private JobModel AddMap(Job entity)
     {
         var job = _mapper.Map<JobModel>(entity);
@@ -52,7 +60,7 @@ public class JobRepository : IJobRepository
         var jobs = entities.Select(AddMap).ToList();
         await _context.AddRangeAsync(jobs);
         await _context.SaveChangesAsync();
-        for (int i = 0; i < entities.Count; i++) entities[i].Id = jobs[i].Id;
+        for (var i = 0; i < entities.Count; i++) entities[i].Id = jobs[i].Id;
     }
 
     public Task UpdateAsync(Job entity)
@@ -87,15 +95,15 @@ public class JobRepository : IJobRepository
 
     public async Task<Job?> GetAsync(int id)
     {
-        var job = await _context.Jobs.FirstOrDefaultAsync(model => model.Id == id);
-        return job == null ? null : _mapper.Map<JobModel, Job>(job);
+        var job = await _context.Jobs.Include(x => x.Publications).FirstOrDefaultAsync(model => model.Id == id);
+        return job == null ? null : GetMap(job);
     }
 
     public async Task<List<Job>> FindAsync(ISpecification<Job, IJobSpecificationVisitor>? specification,
         int? skip = null,
         int? take = null)
     {
-        var query = _context.Jobs.AsQueryable();
+        var query = _context.Jobs.Include(x => x.Publications).AsQueryable();
         if (specification != null)
         {
             var visitor = new JobVisitor();
@@ -103,10 +111,11 @@ public class JobRepository : IJobRepository
             if (visitor.Expr != null) query = query.Where(visitor.Expr);
         }
 
+        query = query.OrderByDescending(x => x.Id);
         if (skip.HasValue) query = query.Skip(skip.Value);
         if (take.HasValue) query = query.Take(take.Value);
 
-        return _mapper.Map<List<JobModel>, List<Job>>(await query.ToListAsync());
+        return (await query.ToListAsync()).Select(GetMap).ToList();
     }
 
     public Task<int> CountAsync(ISpecification<Job, IJobSpecificationVisitor>? specification)

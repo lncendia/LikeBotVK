@@ -1,11 +1,12 @@
-using LikeBotVK.Application.Abstractions.BotServices;
-using LikeBotVK.Application.Abstractions.WebServices;
-using LikeBotVK.Application.Services.Services;
+using LikeBotVK.Application.Abstractions.Services.BotServices;
+using LikeBotVK.Application.Abstractions.Services.WebServices;
+using LikeBotVK.Application.Services.Services.BotServices;
+using LikeBotVK.Application.Services.Services.WebServices;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Infrastructure.JobScheduler.Services;
 using LikeBotVK.Infrastructure.PublicationsGetter.Services;
 using LikeBotVK.Infrastructure.VkAuthentication.Services;
-using LikeBotVK.PaymentSystem.Services;
+using PaymentService = LikeBotVK.PaymentSystem.Services.PaymentService;
 
 namespace LikeBotVK.Extensions;
 
@@ -14,16 +15,17 @@ public static class ApplicationServices
     public static void AddApplicationServices(this IServiceCollection services,
         Configuration.Configuration configuration)
     {
-        services.AddScoped<IProxyParser, ProxyParser>();
         services.AddScoped<IProxyService, ProxyService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IPaymentService, LikeBotVK.Application.Services.Services.WebServices.PaymentService>();
+
         services.AddScoped<IGetPublicationService, GetPublicationService>(
             provider => new GetPublicationService(provider.GetService<IUnitOfWork>()!,
                 configuration.AntiCaptchaToken));
         services.AddScoped<IJobNotifierService, JobNotifierService>();
         services.AddScoped<IJobStarterService, JobStarterService>();
         services.AddScoped<IJobScheduler, JobScheduler>();
-        services.AddScoped<IPaymentService, PaymentService>(
+        services.AddScoped<IPaymentCreatorService, PaymentService>(
             _ => new PaymentService(configuration.PaymentConfiguration.QiwiToken));
         services.AddScoped<ISubscribeDeleter, SubscribeDeleter>();
         services.AddScoped<IProxySetter, RandomProxySetter>();

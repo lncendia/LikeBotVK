@@ -108,7 +108,7 @@ public static class JobsKeyboard
         new List<List<InlineKeyboardButton>>
         {
             new() {InlineKeyboardButton.WithCallbackData("1️⃣ Обычная", $"workType_{WorkType.Simple.ToString()}")},
-            new() {InlineKeyboardButton.WithCallbackData("2️⃣ Разделить", $"workType_{WorkType.Divide.ToString()}")},
+            new() {InlineKeyboardButton.WithCallbackData("2️⃣ 24 часа", $"workType_{WorkType.Divide.ToString()}")},
             new() {InlineKeyboardButton.WithCallbackData("⭐ В главное меню", "mainMenu")},
         });
 

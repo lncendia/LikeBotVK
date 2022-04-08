@@ -1,6 +1,7 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -17,7 +18,7 @@ public class BillQueryCommand : ICallbackQueryCommand
         try
         {
             var (item1, dateTime) = await serviceFacade.PaymentService.GetPaymentData(queryData[2]);
-            payment = new PaymentData(user!.Id, item1, dateTime);
+            payment = new PaymentData(queryData[2], user!.Id, item1, dateTime);
         }
         catch (BillNotPaidException)
         {

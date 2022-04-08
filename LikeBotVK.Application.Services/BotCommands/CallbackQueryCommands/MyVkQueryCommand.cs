@@ -3,6 +3,7 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Extensions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.VK.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -23,7 +24,7 @@ public class MyVkQueryCommand : ICallbackQueryCommand
         }
 
 
-        int page = int.Parse(query.Data![6..]);
+        var page = int.Parse(query.Data![6..]);
         var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id),
             (page - 1) * 10, 10);
         if (!vks.Any())

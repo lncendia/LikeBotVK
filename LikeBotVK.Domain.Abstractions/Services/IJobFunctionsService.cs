@@ -1,4 +1,3 @@
-using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.ValueObjects;
 using LikeBotVK.Domain.VK.Entities;
 

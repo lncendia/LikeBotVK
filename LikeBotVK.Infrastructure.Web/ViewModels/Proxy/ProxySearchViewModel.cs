@@ -2,15 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LikeBotVK.Infrastructure.Web.ViewModels.Proxy;
 
-public class ProxySearchViewModel
+public class PaymentSearchViewModel
 {
-    [Display(Name = "Хост")] public string? Host { get; set; }
-
-    [Range(0, 65536)]
-    [Display(Name = "Порт")]
-    public int? Port { get; set; }
-
-    [Display(Name = "Логин")] public string? Login { get; set; }
-    [Display(Name = "Пароль")] public string? Password { get; set; }
+    [Display(Name = "Хост")] public long? UserId { get; set; }
     public int Page { get; set; } = 1;
 }

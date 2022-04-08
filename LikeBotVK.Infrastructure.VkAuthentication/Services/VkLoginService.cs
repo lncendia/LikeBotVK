@@ -1,8 +1,8 @@
-using LikeBotVK.Application.Abstractions.BotServices;
 using LikeBotVK.Application.Abstractions.Enums;
+using LikeBotVK.Application.Abstractions.Services.BotServices;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.VK.Entities;
-using LikeBotVK.Infrastructure.PublicationsGetter.Exceptions;
+using LikeBotVK.Infrastructure.VkAuthentication.Exceptions;
 using VkNet.AudioBypassService.Exceptions;
 
 namespace LikeBotVK.Infrastructure.VkAuthentication.Services;

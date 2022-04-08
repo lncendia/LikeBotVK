@@ -2,6 +2,7 @@
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -35,21 +36,28 @@ public class EnterSubscribeDataCommand : ITextCommand
             }
         }
 
+        if (id == user!.Id)
+        {
+            data!.State = State.Main;
+            data.Subscribes.Add(new Subscribe(date));
+            await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
+            await client.SendTextMessageAsync(user.Id, $"Вы успешно добавили себе подписку до {date:D} Вы в главном меню.");
+            return;
+        }
+        
         var data2 = await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.GetAsync(id);
-
         if (data2 == null)
         {
-            await client.SendTextMessageAsync(user!.Id, "Пользователь не найден. Попробуйте ещё раз.",
+            await client.SendTextMessageAsync(user.Id, "Пользователь не найден. Попробуйте ещё раз.",
                 replyMarkup: MainKeyboard.Main);
             return;
         }
-
         data2.Subscribes.Add(new Subscribe(date));
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data2);
 
         data!.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
-        await client.SendTextMessageAsync(user!.Id, "Успешно. Вы в главном меню.");
+        await client.SendTextMessageAsync(user.Id, "Успешно. Вы в главном меню.");
         try
         {
             await client.SendTextMessageAsync(data2.UserId, $"Администратор активировал вам подписку до {date:D}");
@@ -59,8 +67,7 @@ public class EnterSubscribeDataCommand : ITextCommand
             // ignored
         }
     }
-
-
+    
     public bool Compare(Message message, User? user, UserData? data) => message.Type == MessageType.Text &&
                                                                         data!.State == State.SubscribesAdmin &&
                                                                         data.IsAdmin;

@@ -3,7 +3,7 @@ using Hangfire;
 using LikeBotVK.Configuration;
 using LikeBotVK.Extensions;
 using LikeBotVK.Infrastructure.JobScheduler.HangfireAuthorization;
-using LikeBotVK.Infrastructure.Web;
+using LikeBotVK.Infrastructure.Web.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,13 +24,12 @@ foreach (var project in configuration.BotConfiguration.Projects)
     var validation = new ValidationContext(project, null, null);
     Validator.ValidateObject(project, validation, true);
 }
-
 builder.Services.AddUnitOfWorks(configuration);
 builder.Services.AddInfrastructureDependencies(configuration);
 builder.Services.AddDomainServices(configuration);
 builder.Services.AddApplicationServices(configuration);
 
-builder.Services.AddControllers().AddNewtonsoftJson().AddApplicationPart(typeof(BotController).Assembly);
+builder.Services.AddMvc().AddNewtonsoftJson().AddApplicationPart(typeof(BotController).Assembly);
 
 
 var app = builder.Build();
@@ -60,5 +59,6 @@ app.UseEndpoints(endpoints =>
         "default",
         configuration.BotConfiguration.TelegramToken + "/{controller=Proxy}/{action=Index}/{id?}");
     endpoints.MapControllers();
+    endpoints.MapRazorPages();
 });
 app.Run();

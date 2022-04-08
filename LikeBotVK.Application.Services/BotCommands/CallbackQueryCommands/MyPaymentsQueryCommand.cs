@@ -2,6 +2,7 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -28,16 +29,17 @@ public class MyPaymentsQueryCommand : ICallbackQueryCommand
         }
 
         var payments =
-            await serviceFacade.ApplicationDataUnitOfWork.PaymentDataRepository.Value.GetUserPaymentsAsync(user!.Id,
-                (page - 1) * 5, 5);
+            await serviceFacade.ApplicationDataUnitOfWork.PaymentDataRepository.Value.GetUserPaymentsAsync(user!.Id, 5,
+                (page - 1) * 5);
         if (!payments.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Больше нет платежей.");
             return;
         }
 
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
         var paymentsString = string.Join("\n\n", payments.Select(payment =>
-            $"Платеж <code>{payment.Id}</code>\nДата: <code>{payment.PaymentDate.ToString("g")}</code>\nСумма: <code>{payment.Cost.ToString("F1")}₽</code>"));
+            $"Платеж <code>{payment.Id}</code>\nДата: <code>{TimeZoneInfo.ConvertTimeFromUtc(payment.PaymentDate, tz).ToString("g")}</code>\nСумма: <code>{payment.Cost.ToString("F1")}₽</code>"));
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, paymentsString, ParseMode.Html,
             replyMarkup: PaymentKeyboard.ActivePayments(page));

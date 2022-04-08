@@ -1,0 +1,60 @@
+@using LikeBotVK.Application.Abstractions.Enums
+@model LikeBotVK.Infrastructure.Web.ViewModels.User.UserEditViewModel
+@{
+    ViewData["Title"] = "Изменение пользователя";
+}
+
+<div class="row gy-3">
+    <div class="col-lg-6">
+        <h3>Изменение пользователя</h3>
+        <form asp-action="Edit" method="post" class="form-horizontal">
+            <div asp-validation-summary="ModelOnly"></div>
+            <div class="form-group">
+                <input asp-for="Id" type="hidden" class="form-control"/>
+                <div class="row g-3">
+                    <div class="col-7">
+                        <label asp-for="State"></label>
+                        <select asp-for="State" asp-placeholder-for="UserSearchViewModel!.State" asp-items="Html.GetEnumSelectList<State>()" class="form-control auto-submit"></select>
+                        <span asp-validation-for="State"></span>
+                    </div>
+                    <div class="col-6">
+                        <span class="pe-2">
+                            <input type="checkbox" class="form-check-input auto-submit" id="isBanned" asp-for="IsBanned">
+                            <label asp-for="IsBanned" for="isBanned"></label>
+                            <span asp-validation-for="IsBanned" class="text-danger"></span>
+                        </span>
+                        <span class="pe-2">
+                            <input type="checkbox" class="form-check-input auto-submit" id="isAdmin" asp-for="IsAdmin">
+                            <label asp-for="IsAdmin" for="isAdmin"></label>
+                            <span asp-validation-for="IsAdmin" class="text-danger"></span>
+                        </span>
+                    </div>
+                    <div class="col-7">
+                        <label asp-for="BonusAccount"></label>
+                        <input asp-placeholder-for="BonusAccount" asp-for="BonusAccount" class="form-control"/>
+                        <span asp-validation-for="BonusAccount" class="text-danger"></span>
+                    </div>
+                    <div class="col-12">
+                        <input class="btn shadow-none btn-outline-dark" type="submit" value="Изменить">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-6">
+        <h3>Подписки пользователя</h3>
+        <div class="row gy-3">
+            <div class="col-7">
+                <ul class="list-group">
+                    @foreach (var x in Model!.Subscribes)
+                    {
+                        <li class="list-group-item">@x.ToString("f")</li>
+                    }
+                </ul>
+            </div>
+            <div class="col-12">
+                <a asp-action="AddSubscribe" asp-route-id="@Model.Id" class="btn shadow-none btn-outline-dark">Добавить подписку</a>
+            </div>
+        </div>
+    </div>
+</div>

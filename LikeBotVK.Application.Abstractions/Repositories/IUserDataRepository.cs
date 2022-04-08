@@ -1,12 +1,8 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 
 namespace LikeBotVK.Application.Abstractions.Repositories;
 
-public interface IUserDataRepository
+public interface IUserDataRepository : IBaseRepository<UserData, long>
 {
-    Task<UserData?> GetAsync(long id);
-    Task AddOrUpdateAsync(UserData data);
-    Task DeleteAsync(long id);
     Task<List<UserData>> GetUsersWithExpiredSubscribesAsync();
 }

@@ -2,15 +2,16 @@
 
 public class PaymentData
 {
-    public PaymentData(long userId, decimal cost, DateTime dateTime)
+    public PaymentData(string id, long userId, decimal cost, DateTime dateTime)
     {
+        Id = id;
         UserId = userId;
         Cost = cost;
         PaymentDate = dateTime;
     }
 
-    public string Id { get; set; } = null!;
-    public long UserId { get; set; }
-    public DateTime PaymentDate { get; set; }
-    public decimal Cost { get; set; }
+    public string Id { get; }
+    public long UserId { get; }
+    public DateTime PaymentDate { get; }
+    public decimal Cost { get; }
 }

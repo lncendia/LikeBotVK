@@ -1,6 +1,6 @@
 using AutoMapper;
 using LikeBotVK.Domain.Abstractions.Repositories;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Domain.VK.Entities;
 using LikeBotVK.Domain.VK.Specification.Visitor;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
@@ -34,7 +34,7 @@ public class VkRepository : IVkRepository
         var vks = _mapper.Map<List<VkModel>>(entities);
         await _context.AddRangeAsync(vks);
         await _context.SaveChangesAsync();
-        for (int i = 0; i < entities.Count; i++) entities[i].Id = vks[i].Id;
+        for (var i = 0; i < entities.Count; i++) entities[i].Id = vks[i].Id;
     }
 
     public Task UpdateAsync(Vk entity)

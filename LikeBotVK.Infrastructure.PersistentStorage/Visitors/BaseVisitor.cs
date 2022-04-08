@@ -14,9 +14,9 @@ public abstract class BaseVisitor<TEntity, TVisitor, TItem> where TVisitor : ISp
     {
         var leftExpr = ConvertSpecToExpression(spec.Left);
         var rightExpr = ConvertSpecToExpression(spec.Right);
-
-        var exprBody = Expression.AndAlso(leftExpr.Body, rightExpr.Body);
-        Expr = Expression.Lambda<Func<TEntity, bool>>(exprBody, leftExpr.Parameters.Single());
+        var param = leftExpr.Parameters.Single();
+        var exprBody = Expression.AndAlso(leftExpr.Body, Expression.Invoke(rightExpr, param));
+        Expr = Expression.Lambda<Func<TEntity, bool>>(exprBody, param);
     }
 
     public void Visit(OrSpecification<TItem, TVisitor> spec)
@@ -24,8 +24,9 @@ public abstract class BaseVisitor<TEntity, TVisitor, TItem> where TVisitor : ISp
         var leftExpr = ConvertSpecToExpression(spec.Left);
         var rightExpr = ConvertSpecToExpression(spec.Right);
 
-        var exprBody = Expression.Or(leftExpr.Body, rightExpr.Body);
-        Expr = Expression.Lambda<Func<TEntity, bool>>(exprBody, leftExpr.Parameters.Single());
+        var param = leftExpr.Parameters.Single();
+        var exprBody = Expression.Or(leftExpr.Body, Expression.Invoke(rightExpr, param));
+        Expr = Expression.Lambda<Func<TEntity, bool>>(exprBody, param);
     }
 
     public void Visit(NotSpecification<TItem, TVisitor> spec)

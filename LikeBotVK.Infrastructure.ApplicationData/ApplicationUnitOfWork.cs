@@ -1,6 +1,6 @@
 using LikeBotVK.Application.Abstractions.Repositories;
 using LikeBotVK.Infrastructure.ApplicationData.Context;
-using LikeBotVK.Infrastructure.ApplicationData.Services;
+using LikeBotVK.Infrastructure.ApplicationData.Repositories;
 
 namespace LikeBotVK.Infrastructure.ApplicationData;
 

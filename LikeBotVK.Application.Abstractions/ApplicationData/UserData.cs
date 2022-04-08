@@ -4,7 +4,13 @@ namespace LikeBotVK.Application.Abstractions.ApplicationData;
 
 public class UserData
 {
-    public long UserId { get; set; }
+    public UserData(long userId, State state)
+    {
+        UserId = userId;
+        State = state;
+    }
+
+    public long UserId { get; }
     public State State { get; set; }
     public int? CurrentVkId { get; set; }
     public List<int> CurrentJobsId { get; set; } = new();

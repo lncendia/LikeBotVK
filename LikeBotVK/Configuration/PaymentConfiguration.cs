@@ -5,9 +5,9 @@ namespace LikeBotVK.Configuration;
 public class PaymentConfiguration
 {
     [Required] public string QiwiToken { get; init; } = null!;
-    [Required] public decimal SubscribeCost => 0;
+    [Required] public decimal SubscribeCost { get; init; }
 
-    [Required] public decimal ReferralBonus => 0;
+    [Required] public decimal ReferralBonus { get; init; }
 
-    [Required] public int SubscribeDuration => 0;
+    [Required] public int SubscribeDuration { get; init; }
 }

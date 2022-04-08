@@ -3,7 +3,7 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -28,24 +28,28 @@ public class StartNowQueryCommand : ICallbackQueryCommand
 
         foreach (var job in currentJobs)
         {
+            var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
             try
             {
-                var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
-                if (dataJob == null) throw new ErrorStartJobException(job, "Jobs data not found", null);
-
-
+                if (dataJob?.Hashtag == null || !dataJob.WorkType.HasValue)
+                    throw new ErrorStartJobException(job, "Jobs data not found", null);
                 await serviceFacade.JobScheduler.StartWorkAsync(dataJob);
                 await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(dataJob);
+
+                if (dataJob.WorkType == WorkType.Divide)
+                    await JobDivider.StartDivideJobs(job, dataJob, serviceFacade, DateTime.UtcNow);
             }
             catch (ErrorStartJobException ex)
             {
-                await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(job.Id);
+                if (dataJob != null)
+                    await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(dataJob);
                 await serviceFacade.UnitOfWork.JobRepository.Value.DeleteAsync(job);
                 await client.SendTextMessageAsync(query.Id, $"Не удалось запустить работу: {ex.Message}.");
             }
         }
 
-        data!.State = State.Main;
+        data.State = State.Main;
+        data.CurrentJobsId.Clear();
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
@@ -54,13 +58,4 @@ public class StartNowQueryCommand : ICallbackQueryCommand
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) =>
         query.Data == "startNow" && data!.State == State.SelectTimeMode;
-
-    private async Task StartSimpleJob(Job job, ServiceFacade serviceFacade)
-    {
-        
-    }
-
-    private async Task StartDivideJob()
-    {
-    }
 }

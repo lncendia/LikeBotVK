@@ -1,0 +1,83 @@
+@model LikeBotVK.Infrastructure.Web.ViewModels.Payment.PaymentListViewModel
+@{
+    ViewData["Title"] = "Платежи";
+    var offset = (Model!.PaymentSearchViewModel!.Page - 1) * 30;
+}
+<div class="table-responsive pt-2">
+    <table class="table table-sm table-hover table-bordered table-striped table-condensed text-center align-middle">
+        <thead class="align-middle">
+        <tr>
+            <th rowspan="2" scope="col">№</th>
+            <th scope="col">ID пользователя</th>
+            <th rowspan="2" scope="col">Дата платежа</th>
+            <th rowspan="2" scope="col">Сумма</th>
+        </tr>
+
+        <tr>
+            <form asp-action="Index" method="get" class="form-horizontal" id="filter">
+                <th scope="col">
+                    <input asp-for="PaymentSearchViewModel!.UserId" asp-placeholder-for="PaymentSearchViewModel!.UserId" class="form-control auto-submit"/>
+                    <span asp-validation-for="PaymentSearchViewModel!.UserId"></span>
+                </th>
+            </form>
+        </tr>
+
+        </thead>
+        <tbody class="align-middle">
+        @for (var i = 0; i < Model!.Payments?.Count; i++)
+        {
+            <tr>
+                <th scope="row">@(i + 1 + offset)</th>
+                <td>
+                    <a asp-controller="User" asp-action="Edit" asp-route-id="@Model.Payments[i].UserId">@Model.Payments[i].UserId</a>
+                </td>
+                <td>@Model.Payments[i].PaymentDate.ToString("g")</td>
+                <td>@Model.Payments[i].Cost.ToString("F")₽</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+
+<nav>
+    <ul class="pagination">
+        @if (Model.PaymentSearchViewModel!.Page != 1)
+        {
+            if (Model.PaymentSearchViewModel.Page > 2)
+            {
+                <li class="page-item">
+                    <input type="submit" class="page-link shadow-none" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" value="1" form="filter">
+                </li>
+            }
+            <li class="page-item">
+                <input type="submit" class="d-none" id="btnPrevious" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" value="@(Model.PaymentSearchViewModel.Page - 1)" form="filter">
+                <label for="btnPrevious" class="page-link" style="cursor: pointer">
+                    <span aria-hidden="true">&laquo;</span>
+                </label>
+            </li>
+            <li class="page-item">
+                <input type="submit" class="page-link shadow-none" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" value="@(Model.PaymentSearchViewModel.Page - 1)" form="filter">
+            </li>
+        }
+        <li class="page-item active">
+            <input type="submit" class="page-link shadow-none" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" value="@Model.PaymentSearchViewModel.Page" form="filter" disabled>
+        </li>
+        @if (offset + 30 < Model.Count)
+        {
+            <li class="page-item">
+                <input type="submit" class="page-link shadow-none" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" value="@(Model.PaymentSearchViewModel.Page + 1)" form="filter">
+            </li>
+            <li class="page-item">
+                <input type="submit" class="d-none" autocomplete="off" asp-for="PaymentSearchViewModel!.Page" id="btnNext" value="@(Model.PaymentSearchViewModel.Page + 1)" form="filter">
+                <label for="btnNext" class="page-link" style="cursor: pointer">
+                    <span aria-hidden="true">&raquo;</span>
+                </label>
+            </li>
+        }
+    </ul>
+</nav>
+
+@section scripts {
+    <script src="~/js/autoSubmit.js"></script>
+}

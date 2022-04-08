@@ -3,10 +3,12 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification;
 using LikeBotVK.Domain.Jobs.Specification.Visitor;
 using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.VK.Entities;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -53,6 +55,7 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
         LoginResult result;
         try
         {
+            await CheckProxyAsync(vk, serviceFacade);
             result = await serviceFacade.VkLoginService.ActivateAsync(vk);
         }
         catch (ErrorActiveVkException ex)
@@ -76,7 +79,8 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
                 break;
             case LoginResult.TwoFactorRequired:
                 data.CurrentVkId = vk.Id;
-                await client.SendTextMessageAsync(query.From.Id, "Введён неверный код. Попробуйте ещё раз.",
+                data.State = State.EnterTwoFactorCode;
+                await client.SendTextMessageAsync(query.From.Id, "Введите код двухфакторной авторизации.",
                     replyMarkup: MainKeyboard.Main);
                 break;
             default:
@@ -90,4 +94,11 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
     }
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("reLogIn");
+    
+    private static async Task CheckProxyAsync(Vk vk, ServiceFacade facade)
+    {
+        if (vk.ProxyId == null)
+            if (await facade.ProxySetter.SetProxyAsync(vk))
+                await facade.UnitOfWork.VkRepository.Value.UpdateAsync(vk);
+    }
 }

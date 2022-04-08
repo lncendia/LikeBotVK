@@ -2,6 +2,7 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -19,8 +20,8 @@ public class EnterHashtagCommand : ITextCommand
             await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
                 new JobsFromIdsSpecification(data!.CurrentJobsId));
         var hashtag = message.Text!.Trim(' ');
-        if (hashtag[0] == '#') hashtag = hashtag[1..];
-        
+        if (hashtag[0] != '#') hashtag = '#' + hashtag;
+
         foreach (var job in currentJobs)
         {
             var dataJob = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);

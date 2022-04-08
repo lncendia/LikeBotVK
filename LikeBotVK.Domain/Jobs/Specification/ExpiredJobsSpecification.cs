@@ -1,6 +1,6 @@
 using LikeBotVK.Domain.Jobs.Entities;
 using LikeBotVK.Domain.Jobs.Specification.Visitor;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 
 namespace LikeBotVK.Domain.Jobs.Specification;
 

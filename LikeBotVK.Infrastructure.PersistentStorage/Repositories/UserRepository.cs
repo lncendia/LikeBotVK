@@ -1,5 +1,6 @@
 using AutoMapper;
 using LikeBotVK.Domain.Abstractions.Repositories;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Domain.Users.Entities;
 using LikeBotVK.Domain.Users.Specification.Visitor;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
@@ -33,7 +34,7 @@ public class UserRepository : IUserRepository
         var users = _mapper.Map<List<User>, List<UserModel>>(entities);
         await _context.AddRangeAsync(users);
         await _context.SaveChangesAsync();
-        for (int i = 0; i < entities.Count; i++) entities[i].Id = users[i].Id;
+        for (var i = 0; i < entities.Count; i++) entities[i].Id = users[i].Id;
     }
 
     public Task UpdateAsync(User entity)
@@ -72,7 +73,7 @@ public class UserRepository : IUserRepository
     }
 
     public async Task<List<User>> FindAsync(
-        Domain.Specifications.ISpecification<User, IUserSpecificationVisitor>? specification, int? skip = null,
+        ISpecification<User, IUserSpecificationVisitor>? specification, int? skip = null,
         int? take = null)
     {
         var query = _context.Users.AsQueryable();
@@ -89,7 +90,7 @@ public class UserRepository : IUserRepository
         return _mapper.Map<List<UserModel>, List<User>>(await query.ToListAsync());
     }
 
-    public Task<int> CountAsync(Domain.Specifications.ISpecification<User, IUserSpecificationVisitor>? specification)
+    public Task<int> CountAsync(ISpecification<User, IUserSpecificationVisitor>? specification)
     {
         var query = _context.Users.AsQueryable();
         if (specification == null) return query.CountAsync();
@@ -100,8 +101,8 @@ public class UserRepository : IUserRepository
         return query.CountAsync();
     }
 
-    private static IMapper GetMapper()
+    private static IMapper GetMapper() => new Mapper(new MapperConfiguration(expr =>
     {
-        return new Mapper(new MapperConfiguration(expr => { expr.CreateMap<User, UserModel>().ReverseMap(); }));
-    }
+        expr.CreateMap<User, UserModel>().ReverseMap();
+    }));
 }

@@ -1,5 +1,5 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;

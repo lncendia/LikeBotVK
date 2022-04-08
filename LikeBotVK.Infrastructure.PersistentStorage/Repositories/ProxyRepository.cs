@@ -2,7 +2,7 @@ using AutoMapper;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Proxies.Entities;
 using LikeBotVK.Domain.Proxies.Specification.Visitor;
-using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.Specifications.Abstractions;
 using LikeBotVK.Infrastructure.PersistentStorage.Context;
 using LikeBotVK.Infrastructure.PersistentStorage.Models;
 using LikeBotVK.Infrastructure.PersistentStorage.Visitors;
@@ -34,7 +34,7 @@ public class ProxyRepository : IProxyRepository
         var proxies = _mapper.Map<List<ProxyModel>>(entities);
         await _context.AddRangeAsync(proxies);
         await _context.SaveChangesAsync();
-        for (int i = 0; i < entities.Count; i++) entities[i].Id = proxies[i].Id;
+        for (var i = 0; i < entities.Count; i++) entities[i].Id = proxies[i].Id;
     }
 
     public Task UpdateAsync(Proxy entity)

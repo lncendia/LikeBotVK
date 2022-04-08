@@ -1,13 +1,11 @@
 using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
-using LikeBotVK.Domain.Jobs.Enums;
+using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using User = LikeBotVK.Domain.Users.Entities.User;
 
 namespace LikeBotVK.Application.Services.BotCommands.CallbackQueryCommands;

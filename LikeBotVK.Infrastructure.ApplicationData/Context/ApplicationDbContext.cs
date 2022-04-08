@@ -18,6 +18,7 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<UserData>().HasMany(u => u.Subscribes).WithOne(s => s.UserData);
         modelBuilder.Entity<UserData>().Property(u => u.CurrentJobsId).HasConversion(
             ints => JsonConvert.SerializeObject(ints), str => JsonConvert.DeserializeObject<List<int>>(str));
     }

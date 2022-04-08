@@ -1,9 +1,9 @@
 ﻿using LikeBotVK.Application.Abstractions.ApplicationData;
-using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -47,6 +47,7 @@ public class EnterCountSubscribesCommand : ITextCommand
         }
         
         data.BonusAccount -= bonus;
+        data.State = State.Main;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id,
             $"💸 Оплата подписок на сумму {cost}₽ из которых {bonus}₽ из бонусного счёта.\n📆 Дата: {DateTime.Now:dd.MMM.yyyy}\n❌ Статус: Не оплачено.\n\n💳 Оплатите счет.",

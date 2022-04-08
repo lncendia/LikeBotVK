@@ -2,6 +2,7 @@ using LikeBotVK.Application.Abstractions.ApplicationData;
 using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
+using LikeBotVK.Application.Services.Services.BotServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -20,8 +21,12 @@ public class StopWorkQueryCommand : ICallbackQueryCommand
         }
 
         var id = int.Parse(query.Data![9..]);
-        var jobData = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(id);
-        if (jobData == null)
+        var jobTask = serviceFacade.UnitOfWork.JobRepository.Value.GetAsync(id);
+        var jobDataTask = serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(id);
+        await Task.WhenAll(jobTask, jobDataTask);
+        var job = jobTask.Result;
+        var jobData = jobDataTask.Result;
+        if (job == null || jobData == null)
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
                 "Вы не можете остановить эту работу.");
@@ -37,7 +42,10 @@ public class StopWorkQueryCommand : ICallbackQueryCommand
             await client.AnswerCallbackQueryAsync(query.Id, $"Не удалось отсановить работу: {ex.Message}.", true);
             return;
         }
-        
+
+        job.MarkAsCompleted();
+        await serviceFacade.UnitOfWork.JobRepository.Value.UpdateAsync(job);
+
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, "Работа успешно остановлена.");
     }
 

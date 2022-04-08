@@ -1,7 +1,7 @@
 using System.Net;
-using LikeBotVK.Application.Abstractions.BotServices;
 using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Exceptions;
+using LikeBotVK.Application.Abstractions.Services.BotServices;
 using Newtonsoft.Json;
 using Qiwi.BillPayments.Client;
 using Qiwi.BillPayments.Model;
@@ -11,7 +11,7 @@ using RestSharp;
 
 namespace LikeBotVK.PaymentSystem.Services;
 
-public class PaymentService : IPaymentService
+public class PaymentService : IPaymentCreatorService
 {
     private readonly BillPaymentsClient _client;
     private readonly string _qiwiToken;
@@ -63,7 +63,7 @@ public class PaymentService : IPaymentService
                 throw new ErrorCheckBillException(response1.StatusDescription ?? "Bad status code", null);
             var response = JsonConvert.DeserializeObject<BillResponse>(response1.Content!);
             if (response?.Status.ValueString != "PAID") throw new BillNotPaidException(billId);
-            return (response.Amount.ValueDecimal, response.Status.ChangedDateTime);
+            return (response.Amount.ValueDecimal, response.Status.ChangedDateTime.ToUniversalTime());
         }
         catch (Exception ex)
         {
