@@ -39,6 +39,7 @@ public class PaymentDataRepository : IPaymentDataRepository
             await _context.AddAsync(payment);
         }
 
+        payment.Id = data.Id;
         payment.PaymentDate = data.PaymentDate;
         payment.Cost = data.Cost;
         payment.UserId = data.UserId;

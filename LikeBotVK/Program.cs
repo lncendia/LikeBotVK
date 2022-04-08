@@ -48,7 +48,7 @@ app.UseHangfireDashboard($"/{configuration.BotConfiguration.TelegramToken}/hangf
     new DashboardOptions
     {
         AppPath = $"/{configuration.BotConfiguration.TelegramToken}",
-        Authorization = new[] {new NoAuthorizationFilter()}
+        Authorization = new[] {new NoAuthorizationFilter()},
     });
 app.UseEndpoints(endpoints =>
 {

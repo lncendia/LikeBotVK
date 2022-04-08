@@ -17,8 +17,8 @@ public class BillQueryCommand : ICallbackQueryCommand
         PaymentData payment;
         try
         {
-            var (item1, dateTime) = await serviceFacade.PaymentService.GetPaymentData(queryData[2]);
-            payment = new PaymentData(queryData[2], user!.Id, item1, dateTime);
+            var (cost, dateTime) = await serviceFacade.PaymentService.GetPaymentData(queryData[2]);
+            payment = new PaymentData(queryData[2], user!.Id, cost, dateTime);
         }
         catch (BillNotPaidException)
         {

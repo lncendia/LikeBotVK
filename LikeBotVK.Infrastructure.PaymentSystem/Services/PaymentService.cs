@@ -65,7 +65,7 @@ public class PaymentService : IPaymentCreatorService
             if (response?.Status.ValueString != "PAID") throw new BillNotPaidException(billId);
             return (response.Amount.ValueDecimal, response.Status.ChangedDateTime.ToUniversalTime());
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BillNotPaidException)
         {
             throw new ErrorCheckBillException(ex.Message, ex);
         }
