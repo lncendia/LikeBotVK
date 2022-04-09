@@ -34,8 +34,8 @@ public class StartWorkingQueryCommand : ICallbackQueryCommand
         }
 
         var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(
-            new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVksSpecification(user!.Id),
-                new ActiveVksSpecification()));
+            new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVkSpecification(user!.Id),
+                new ActiveVkSpecification()));
         if (!vks.Any())
         {
             await client.AnswerCallbackQueryAsync(query.Id, "У вас нет активированных аккаунтов.");

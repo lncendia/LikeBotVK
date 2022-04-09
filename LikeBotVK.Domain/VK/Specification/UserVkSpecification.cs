@@ -4,11 +4,11 @@ using LikeBotVK.Domain.VK.Specification.Visitor;
 
 namespace LikeBotVK.Domain.VK.Specification;
 
-public class UserVksSpecification : ISpecification<Vk, IVkSpecificationVisitor>
+public class UserVkSpecification : ISpecification<Vk, IVkSpecificationVisitor>
 {
     public long UserId { get; }
 
-    public UserVksSpecification(long userId)
+    public UserVkSpecification(long userId)
     {
         UserId = userId;
     }

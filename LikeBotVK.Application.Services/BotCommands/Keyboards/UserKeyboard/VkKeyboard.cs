@@ -12,21 +12,12 @@ public static class VkKeyboard
     };
 
     private static readonly Random Random = new();
-    // public static InlineKeyboardMarkup Exit(long id)
-    // {
-    //     var keyboard = new List<InlineKeyboardButton>
-    //     {
-    //         InlineKeyboardButton.WithCallbackData("🚪 Выйти", $"exit_{id}"),
-    //         InlineKeyboardButton.WithCallbackData("♻ Перезайти", $"reLogIn_{id}")
-    //     };
-    //     return new InlineKeyboardMarkup(keyboard);
-    // }
 
     public static InlineKeyboardMarkup VkMain(Vk vk)
     {
         var list = new List<InlineKeyboardButton>
         {
-            InlineKeyboardButton.WithCallbackData("🖊", $"edit_{vk.Id}"),
+            InlineKeyboardButton.WithCallbackData("🖊 Редактировать", $"edit_{vk.Id}"),
         };
         List<InlineKeyboardButton> keyboard;
         if (!string.IsNullOrEmpty(vk.AccessToken))
@@ -73,7 +64,6 @@ public static class VkKeyboard
                     $"myVks_{i+1}")
             });
         }
-
         return new InlineKeyboardMarkup(buttons);
     }
 }

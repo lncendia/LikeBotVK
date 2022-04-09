@@ -27,7 +27,7 @@ public class SelectAccountQueryCommand : ICallbackQueryCommand
 
         var id = int.Parse(query.Data![7..]);
         var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(id);
-        if (vk == null || vk.UserId != user!.Id || !new ActiveVksSpecification().IsSatisfiedBy(vk))
+        if (vk == null || vk.UserId != user!.Id || !new ActiveVkSpecification().IsSatisfiedBy(vk))
         {
             await client.AnswerCallbackQueryAsync(query.Id, "Вы не можете добавить этот аккаунт.");
             return;

@@ -21,7 +21,7 @@ public class VkPagesQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(new UserVksSpecification(user!.Id));
+        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(new UserVkSpecification(user!.Id));
         if (vks == 0)
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,

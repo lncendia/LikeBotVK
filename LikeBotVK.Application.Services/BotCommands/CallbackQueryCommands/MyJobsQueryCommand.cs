@@ -33,7 +33,7 @@ public class MyJobsQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id));
+        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVkSpecification(user!.Id));
 
         var works = await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(
             new JobsFromVkIdsSpecification(vks.Select(vk => vk.Id).ToList()), page - 1, 1);

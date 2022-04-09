@@ -17,8 +17,11 @@ public class VkVisitor : BaseVisitor<VkModel, IVkSpecificationVisitor, Vk>, IVkS
         return visitor.Expr!;
     }
 
-    public void Visit(ActiveVksSpecification specification) =>
+    public void Visit(ActiveVkSpecification specification) =>
         Expr = model => !string.IsNullOrEmpty(model.AccessToken);
 
-    public void Visit(UserVksSpecification specification) => Expr = model => model.UserId == specification.UserId;
+    public void Visit(UserVkSpecification specification) => Expr = model => model.UserId == specification.UserId;
+
+    public void Visit(VkFromUsernameSpecification specification) =>
+        Expr = model => model.Username == specification.Username;
 }

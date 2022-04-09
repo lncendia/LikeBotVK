@@ -3,6 +3,10 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.Services.BotServices;
+using LikeBotVK.Domain.Specifications;
+using LikeBotVK.Domain.VK.Entities;
+using LikeBotVK.Domain.VK.Specification;
+using LikeBotVK.Domain.VK.Specification.Visitor;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -35,6 +39,20 @@ public class EnterEditVkDataCommand : ITextCommand
                 "Неверный формат данных! Попробуйте ещё раз.\nФормат: <code>[логин:пароль]</code>", ParseMode.Html,
                 replyMarkup: MainKeyboard.Main);
             return;
+        }
+
+        if (dataVk[0] != vk.Username)
+        {
+            var count = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(
+                new AndSpecification<Vk, IVkSpecificationVisitor>(new VkFromUsernameSpecification(dataVk[0]),
+                    new UserVkSpecification(user!.Id)));
+            if (count != 0)
+            {
+                await client.SendTextMessageAsync(message.Chat.Id,
+                    "Аккаунт с таким логином уже есть. Введите другие данные или вернитесь в главное меню.",
+                    replyMarkup: MainKeyboard.Main);
+                return;
+            }
         }
 
         vk.ChangeData(dataVk[0], dataVk[1]);

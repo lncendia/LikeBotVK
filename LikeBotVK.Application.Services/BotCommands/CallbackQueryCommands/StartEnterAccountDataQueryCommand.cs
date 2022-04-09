@@ -22,7 +22,7 @@ public class StartEnterAccountDataQueryCommand : ICallbackQueryCommand
             return;
         }
 
-        var count = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(new UserVksSpecification(user!.Id));
+        var count = await serviceFacade.UnitOfWork.VkRepository.Value.CountAsync(new UserVkSpecification(user!.Id));
 
         if (count >= 50)
         {

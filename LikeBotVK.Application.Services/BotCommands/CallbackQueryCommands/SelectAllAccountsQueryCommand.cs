@@ -32,8 +32,8 @@ public class SelectAllAccountsQueryCommand : ICallbackQueryCommand
                 new JobsFromIdsSpecification(data.CurrentJobsId));
 
         var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(
-            new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVksSpecification(user!.Id),
-                new ActiveVksSpecification()));
+            new AndSpecification<Vk, IVkSpecificationVisitor>(new UserVkSpecification(user!.Id),
+                new ActiveVkSpecification()));
         vks.RemoveAll(vk => currentJobs.Any(job => job.VkId == vk.Id));
 
 

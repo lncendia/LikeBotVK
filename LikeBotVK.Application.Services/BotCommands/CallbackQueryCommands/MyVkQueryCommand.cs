@@ -25,7 +25,7 @@ public class MyVkQueryCommand : ICallbackQueryCommand
 
 
         var page = int.Parse(query.Data![6..]);
-        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVksSpecification(user!.Id),
+        var vks = await serviceFacade.UnitOfWork.VkRepository.Value.FindAsync(new UserVkSpecification(user!.Id),
             (page - 1) * 10, 10);
         if (!vks.Any())
         {

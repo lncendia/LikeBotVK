@@ -44,7 +44,7 @@ public class ExitQueryCommand : ICallbackQueryCommand
         }
 
         await client.SendChatActionAsync(user.Id, ChatAction.Typing);
-        if (!string.IsNullOrEmpty(vk.AccessToken)) await serviceFacade.VkLoginService.DeactivateAsync(vk);
+        if (!vk.IsActive()) await serviceFacade.VkLoginService.DeactivateAsync(vk);
         await serviceFacade.UnitOfWork.VkRepository.Value.DeleteAsync(vk);
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
