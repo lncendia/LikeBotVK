@@ -4,6 +4,9 @@ using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
+using LikeBotVK.Domain.Specifications;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = LikeBotVK.Domain.Users.Entities.User;
@@ -33,6 +36,17 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
                 "Вы не можете перезапустить эту работу.");
             return;
         }
+        
+        
+        var spec = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(job.VkId),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
+        var countNotFinished = await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(spec);
+        if (countNotFinished != 0)
+        {
+            await client.AnswerCallbackQueryAsync(query.Id,
+                "Вы не можете выбрать аккаунт, на котором уже запущена задача.");
+            return;
+        }
 
         var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(job.VkId);
 
@@ -47,9 +61,10 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
         var newData = new JobData(newJob.Id)
         {
             Hashtag = jobData.Hashtag,
-            DateTimeLimitation = jobData.DateTimeLimitation,
             WorkType = WorkType.Simple
         };
+        if (jobData.DateTimeLimitation.HasValue && jobData.DateTimeLimitation < DateTime.UtcNow)
+            newData.DateTimeLimitation = jobData.DateTimeLimitation;
         await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(newData);
 
         data.CurrentJobsId.Add(newJob.Id);

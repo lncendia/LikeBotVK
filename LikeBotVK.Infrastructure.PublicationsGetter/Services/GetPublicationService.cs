@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using LikeBotVK.Application.Abstractions.Exceptions;
 using LikeBotVK.Application.Abstractions.Services.BotServices;
 using LikeBotVK.Domain.Abstractions.Repositories;
 using LikeBotVK.Domain.Jobs.ValueObjects;
@@ -29,6 +30,8 @@ public class GetPublicationService : IGetPublicationService
         var proxy = vk.ProxyId.HasValue ? await _unitOfWork.ProxyRepository.Value.GetAsync(vk.ProxyId.Value) : null;
         var publications = await GetNewsAsync(VkApi.BuildApi(vk.AccessToken, _token, proxy), hashtag,
             limitTime?.ToLocalTime(), 1000, token);
+        if (publications?.Items == null || !publications.Items.Any())
+            throw new PublicationsNotFoundException(hashtag);
         var items = type switch
         {
             Type.Like => publications.Items.Where(item => item.Likes.CanLike && !item.Likes.UserLikes),
@@ -40,7 +43,7 @@ public class GetPublicationService : IGetPublicationService
     }
 
 
-    private static async Task<NewsSearchResult> GetNewsAsync(IVkApiCategories api, string query,
+    private static async Task<NewsSearchResult?> GetNewsAsync(IVkApiCategories api, string query,
         DateTime? startTimeLocal, int count, CancellationToken token)
     {
         var pages = count / 200;
@@ -61,7 +64,8 @@ public class GetPublicationService : IGetPublicationService
         {
             token.ThrowIfCancellationRequested();
             var response = await api.NewsFeed
-                .SearchAsync(new NewsFeedSearchParams {StartTime = startTimeLocal, Query = query, Count = rest, StartFrom = result.NextFrom});
+                .SearchAsync(new NewsFeedSearchParams
+                    {StartTime = startTimeLocal, Query = query, Count = rest, StartFrom = result.NextFrom});
             if (!response.Items.Any()) return result;
             Map(response, result);
         }

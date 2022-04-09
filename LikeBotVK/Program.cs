@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using Hangfire;
 using LikeBotVK.Configuration;
 using LikeBotVK.Extensions;
@@ -7,8 +8,12 @@ using LikeBotVK.Infrastructure.Web.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = builder.Configuration.Get<Configuration>();
+var culture = CultureInfo.GetCultureInfo("ru-RU");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+CultureInfo.CurrentCulture = culture;
 
+var configuration = builder.Configuration.Get<Configuration>();
 
 var validationBase = new ValidationContext(configuration, null, null);
 var validationBot = new ValidationContext(configuration.BotConfiguration, null, null);
@@ -24,6 +29,7 @@ foreach (var project in configuration.BotConfiguration.Projects)
     var validation = new ValidationContext(project, null, null);
     Validator.ValidateObject(project, validation, true);
 }
+
 builder.Services.AddUnitOfWorks(configuration);
 builder.Services.AddInfrastructureDependencies(configuration);
 builder.Services.AddDomainServices(configuration);

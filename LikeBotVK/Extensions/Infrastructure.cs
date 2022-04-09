@@ -38,7 +38,7 @@ public static class Infrastructure
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
                     DisableGlobalLocks = true,
-                    PrepareSchemaIfNecessary = true,
+                    PrepareSchemaIfNecessary = true
                 });
 
             globalConfiguration.UseSerializerSettings(new JsonSerializerSettings

@@ -46,15 +46,12 @@ public class JobStarterService : IJobStarterService
                 job.AddPublications(publications);
                 await _unitOfWork.JobRepository.Value.UpdateAsync(job);
             }
-            catch (TaskCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not TaskCanceledException)
             {
                 job.ErrorMessage = ex.Message;
                 job.MarkAsCompleted();
                 await _unitOfWork.JobRepository.Value.UpdateAsync(job);
+                await _jobNotifier.NotifyEndAsync(job);
                 return;
             }
         }
@@ -63,11 +60,7 @@ public class JobStarterService : IJobStarterService
         {
             await _jobProcessor.ProcessJobAsync(job, token);
         }
-        catch (TaskCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not TaskCanceledException)
         {
             job.ErrorMessage = ex.Message;
         }
