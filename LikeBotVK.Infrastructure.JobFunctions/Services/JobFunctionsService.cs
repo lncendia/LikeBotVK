@@ -39,7 +39,7 @@ public class JobFunctionsService : IJobFunctionsService
     {
         if (string.IsNullOrEmpty(vk.AccessToken)) throw new VkNotActiveException(vk);
         var proxy = vk.ProxyId.HasValue ? await _unitOfWork.ProxyRepository.Value.GetAsync(vk.ProxyId.Value) : null;
-        var x = await BuildApi(vk.AccessToken, _antiCaptchaToken, proxy).Wall.RepostAsync(
+        await BuildApi(vk.AccessToken, _antiCaptchaToken, proxy).Wall.RepostAsync(
             $"wall{publication.OwnerId}_{publication.PublicationId}",
             string.Empty,
             null, false);
@@ -56,7 +56,7 @@ public class JobFunctionsService : IJobFunctionsService
         }
         else
         {
-            var result = await api.Groups.JoinAsync(publication.OwnerId);
+            var result = await api.Groups.JoinAsync(-publication.OwnerId);
             if (!result) throw new Exception();
         }
     }
