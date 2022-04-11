@@ -36,8 +36,8 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
                 "Вы не можете перезапустить эту работу.");
             return;
         }
-        
-        
+
+
         var spec = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(job.VkId),
             new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
         var countNotFinished = await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(spec);
@@ -57,22 +57,15 @@ public class RestartJobQueryCommand : ICallbackQueryCommand
         newJob.SetInterval(job.LowerInterval, job.UpperInterval);
 
         await serviceFacade.UnitOfWork.JobRepository.Value.AddAsync(newJob);
-
-        var newData = new JobData(newJob.Id)
-        {
-            Hashtag = jobData.Hashtag,
-            WorkType = WorkType.Simple
-        };
-        if (jobData.DateTimeLimitation.HasValue && jobData.DateTimeLimitation < DateTime.UtcNow)
-            newData.DateTimeLimitation = jobData.DateTimeLimitation;
+        var newData = new JobData(newJob.Id) {Hashtag = jobData.Hashtag};
         await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.AddOrUpdateAsync(newData);
 
         data.CurrentJobsId.Add(newJob.Id);
-        data.State = State.SelectTimeMode;
+        data.State = State.EnterCountLimitation;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
-
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
-            "Выберите действие:", replyMarkup: JobsKeyboard.StartWork);
+            "Введите количество публикаций, которое необходимо получить.",
+            replyMarkup: JobsKeyboard.SkipDataLimitation);
     }
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("workRestart");

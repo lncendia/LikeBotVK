@@ -6,6 +6,6 @@ namespace LikeBotVK.Application.Abstractions.Services.BotServices;
 
 public interface IGetPublicationService
 {
-     Task<List<Publication>> GetPublicationsAsync(Vk vk, string hashtag, Type type, DateTime? limitTime,
-          CancellationToken token);
+    Task<List<Publication>> GetPublicationsAsync(Vk vk, string hashtag, Type type, int count, DateTime? limitTime,
+        CancellationToken token);
 }

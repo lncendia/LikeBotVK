@@ -9,5 +9,6 @@ public class JobData
     public string? BackgroundJobId { get; set; }
     public string? Hashtag { get; set; }
     public WorkType? WorkType { get; set; }
-    public DateTime? DateTimeLimitation { get; set; }
+    public DateTime? DateTimeLimitation { get; init; }
+    public int Count { get; set; }
 }

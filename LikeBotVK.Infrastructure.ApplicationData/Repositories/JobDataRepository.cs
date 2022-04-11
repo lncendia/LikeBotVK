@@ -21,7 +21,8 @@ public class JobDataRepository : IJobDataRepository
             BackgroundJobId = data.BackgroundJobId,
             DateTimeLimitation = data.DateTimeLimitation,
             Hashtag = data.Hashtag,
-            WorkType = data.WorkType
+            WorkType = data.WorkType,
+            Count = data.Count
         }).FirstOrDefaultAsync();
     }
 
@@ -39,6 +40,7 @@ public class JobDataRepository : IJobDataRepository
         jobData.DateTimeLimitation = data.DateTimeLimitation;
         jobData.Hashtag = data.Hashtag;
         jobData.WorkType = data.WorkType;
+        jobData.Count = data.Count;
 
         await _context.SaveChangesAsync();
     }

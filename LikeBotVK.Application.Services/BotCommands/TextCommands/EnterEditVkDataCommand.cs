@@ -3,6 +3,9 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.Services.BotServices;
+using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
 using LikeBotVK.Domain.Specifications;
 using LikeBotVK.Domain.VK.Entities;
 using LikeBotVK.Domain.VK.Specification;
@@ -38,6 +41,15 @@ public class EnterEditVkDataCommand : ITextCommand
             await client.SendTextMessageAsync(message.Chat.Id,
                 "Неверный формат данных! Попробуйте ещё раз.\nФормат: <code>[логин:пароль]</code>", ParseMode.Html,
                 replyMarkup: MainKeyboard.Main);
+            return;
+        }
+        
+        var specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
+        
+        if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(specification) > 0)
+        {
+            await client.SendTextMessageAsync(message.Chat.Id, "На этом аккаунте есть незавершенные задачи.", replyMarkup: MainKeyboard.Main);
             return;
         }
 

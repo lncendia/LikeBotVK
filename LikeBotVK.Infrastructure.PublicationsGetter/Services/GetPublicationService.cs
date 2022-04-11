@@ -23,13 +23,16 @@ public class GetPublicationService : IGetPublicationService
         _token = token;
     }
 
-    public async Task<List<Publication>> GetPublicationsAsync(Vk vk, string hashtag, Type type, DateTime? limitTime,
-        CancellationToken token)
+    public async Task<List<Publication>> GetPublicationsAsync(Vk vk, string hashtag, Type type, int count,
+        DateTime? limitTime, CancellationToken token)
     {
         if (string.IsNullOrEmpty(vk.AccessToken)) throw new VkNotActiveException(vk);
+        if (count < 1) throw new ArgumentException("Count can't be less then zero.");
+        if (string.IsNullOrEmpty(hashtag)) throw new ArgumentException("Hashtag can't be null or empty.");
+
         var proxy = vk.ProxyId.HasValue ? await _unitOfWork.ProxyRepository.Value.GetAsync(vk.ProxyId.Value) : null;
         var publications = await GetNewsAsync(VkApi.BuildApi(vk.AccessToken, _token, proxy), hashtag,
-            limitTime?.ToLocalTime(), 1000, token);
+            limitTime?.ToLocalTime(), count, token);
         if (publications?.Items == null || !publications.Items.Any())
             throw new PublicationsNotFoundException(hashtag);
         var items = type switch
@@ -39,7 +42,9 @@ public class GetPublicationService : IGetPublicationService
             Type.Repost => publications.Items.Where(item => item.Likes.CanPublish!.Value),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
-        return items.Select(item => new Publication {OwnerId = item.FromId, PublicationId = item.Id}).ToList();
+        var list = items.Select(item => new Publication {OwnerId = item.FromId, PublicationId = item.Id}).ToList();
+        if (!list.Any()) throw new PublicationsNotFoundException(hashtag);
+        return list;
     }
 
 
@@ -51,16 +56,15 @@ public class GetPublicationService : IGetPublicationService
         for (var i = 0; i < pages; i++)
         {
             await Task.Delay(3000, token);
-            var response = await api.NewsFeed
-                .SearchAsync(new NewsFeedSearchParams
-                    {StartTime = startTimeLocal, Query = query, Count = 200, StartFrom = result.NextFrom});
+            var response = await api.NewsFeed.SearchAsync(new NewsFeedSearchParams
+                {StartTime = startTimeLocal, Query = query, Count = 200, StartFrom = result.NextFrom});
             if (!response.Items.Any()) return result;
             Map(response, result);
             if (string.IsNullOrEmpty(result.NextFrom)) return result;
         }
 
         var rest = count % 200;
-        if (rest <= 0) return result;
+        if (rest < 1) return result;
         {
             token.ThrowIfCancellationRequested();
             var response = await api.NewsFeed

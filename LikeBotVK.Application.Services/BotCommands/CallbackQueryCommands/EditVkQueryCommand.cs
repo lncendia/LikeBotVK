@@ -3,6 +3,10 @@ using LikeBotVK.Application.Abstractions.Enums;
 using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.Services.BotServices;
+using LikeBotVK.Domain.Jobs.Entities;
+using LikeBotVK.Domain.Jobs.Specification;
+using LikeBotVK.Domain.Jobs.Specification.Visitor;
+using LikeBotVK.Domain.Specifications;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -27,6 +31,16 @@ public class EditVkQueryCommand : ICallbackQueryCommand
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
                 "Вы не можете редактировать этот аккаунт.");
+            return;
+        }
+        
+        var specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
+        
+        if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(specification) > 0)
+        {
+            await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
+                "На этом аккаунте есть незавершенные задачи.");
             return;
         }
 

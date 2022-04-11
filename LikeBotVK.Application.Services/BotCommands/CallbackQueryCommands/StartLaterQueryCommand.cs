@@ -19,7 +19,7 @@ public class StartLaterQueryCommand : ICallbackQueryCommand
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
 
         await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
-            "Через сколько вы хотите начать работу? В формате: <code>[чч:мм:сс] или [Д.чч:мм:сс]</code>",
+            "Во сколько вы хотите начать работу (по МСК)? В формате:  Формат: <code>dd.MM.yy H:mm:ss</code>",
             ParseMode.Html,
             replyMarkup: MainKeyboard.Main);
     }

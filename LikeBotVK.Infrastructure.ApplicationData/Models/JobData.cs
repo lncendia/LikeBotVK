@@ -13,4 +13,5 @@ public class JobData
     public string? Hashtag { get; set; }
     public DateTime? DateTimeLimitation { get; set; }
     public WorkType? WorkType { get; set; }
+    public int Count { get; set; }
 }

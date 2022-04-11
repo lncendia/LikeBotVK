@@ -74,12 +74,13 @@ public static class JobsKeyboard
         var list = new List<InlineKeyboardButton>
         {
             InlineKeyboardButton.WithCallbackData("⬅", $"worksHistory_{page - 1}"),
-            InlineKeyboardButton.WithCallbackData("🔄", $"workRestart_{job.Id}"),
             InlineKeyboardButton.WithCallbackData("➡", $"worksHistory_{page + 1}")
         };
 
-        if (!job.IsCompleted)
-            list.Insert(2, InlineKeyboardButton.WithCallbackData("⏹", $"stopWork_{job.Id}"));
+        var button = job.IsCompleted
+            ? InlineKeyboardButton.WithCallbackData("🔄", $"workRestart_{job.Id}")
+            : InlineKeyboardButton.WithCallbackData("⏹", $"stopWork_{job.Id}");
+        list.Insert(1, button);
         return new InlineKeyboardMarkup(list);
     }
 

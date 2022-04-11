@@ -40,11 +40,11 @@ public class EnterIntervalCommand : ITextCommand
         currentJobs.ForEach(job => job.SetInterval(lower, upper));
         await serviceFacade.UnitOfWork.JobRepository.Value.UpdateRangeAsync(currentJobs);
 
-        data.State = State.EnterDateLimitation;
+        data.State = State.EnterCountLimitation;
         await serviceFacade.ApplicationDataUnitOfWork.UserDataRepository.Value.AddOrUpdateAsync(data);
         await client.SendTextMessageAsync(message.From!.Id,
-            "Введите дату до которой необходимо получать публикации (по МСК). Формат: <code>dd.MM.yy H:mm:ss</code>",
-            ParseMode.Html, replyMarkup: JobsKeyboard.SkipDataLimitation);
+            "Введите количество публикаций, которое необходимо получить.",
+            replyMarkup: JobsKeyboard.SkipDataLimitation);
     }
 
     public bool Compare(Message message, User? user, UserData? data) =>

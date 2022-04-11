@@ -27,6 +27,7 @@ public class JobProcessorService : IJobProcessorService
         job.MarkAsStarted();
         await _unitOfWork.JobRepository.Value.UpdateAsync(job);
         var startIndex = job.CountSuccess + job.CountErrors;
+        var errors = 0;
         for (var i = startIndex; i < job.Publications.Count; i++)
         {
             await job.Delay(token);
@@ -42,15 +43,18 @@ public class JobProcessorService : IJobProcessorService
             {
                 await task;
                 job.UpdateInfo(job.CountErrors, job.CountSuccess + 1);
+                errors = 0;
             }
             catch (Exception ex)
             {
                 job.UpdateInfo(job.CountErrors + 1, job.CountSuccess);
                 job.ErrorMessage = ex.Message;
+                errors++;
             }
 
             token.ThrowIfCancellationRequested();
             await _unitOfWork.JobRepository.Value.UpdateAsync(job);
+            if (errors == 10) throw new TooManyErrorsException(job);
         }
     }
 }

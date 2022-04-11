@@ -1,7 +1,7 @@
 @model LikeBotVK.Infrastructure.Web.ViewModels.Payment.PaymentListViewModel
 @{
     ViewData["Title"] = "Платежи";
-    var offset = (Model!.PaymentSearchViewModel!.Page - 1) * 30;
+    var offset = (Model.PaymentSearchViewModel!.Page - 1) * 30;
 }
 <div class="table-responsive pt-2">
     <table class="table table-sm table-hover table-bordered table-striped table-condensed text-center align-middle">
@@ -24,7 +24,7 @@
 
         </thead>
         <tbody class="align-middle">
-        @for (var i = 0; i < Model!.Payments?.Count; i++)
+        @for (var i = 0; i < Model.Payments?.Count; i++)
         {
             <tr>
                 <th scope="row">@(i + 1 + offset)</th>
@@ -35,6 +35,10 @@
                 <td>@Model.Payments[i].Cost.ToString("F")₽</td>
             </tr>
         }
+        <tr>
+            <th colspan="3" scope="row">Всего</th>
+            <td>@Model.Payments!.Sum(x => x.Cost).ToString("F")₽</td>
+        </tr>
         </tbody>
     </table>
 </div>
