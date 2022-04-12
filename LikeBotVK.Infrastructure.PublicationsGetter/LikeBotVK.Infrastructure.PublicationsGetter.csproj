@@ -12,8 +12,14 @@
 
     <ItemGroup>
       <PackageReference Include="CaptchaSharp" Version="1.0.10" />
+      <PackageReference Include="protobuf-net" Version="3.0.101" />
       <PackageReference Include="VkNet" Version="1.68.0" />
-      <PackageReference Include="VkNet.AudioBypassService" Version="1.7.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="VkNet.AudioBypassService, Version=1.7.2.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\VkNet.AudioBypassService.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ using LikeBotVK.Application.Services.BotCommands.Interfaces;
 using LikeBotVK.Application.Services.BotCommands.Keyboards.UserKeyboard;
 using LikeBotVK.Application.Services.Services.BotServices;
 using LikeBotVK.Domain.VK.Entities;
+using LikeBotVK.Domain.VK.Specification;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -25,7 +26,7 @@ public class ActiveVkQueryCommand : ICallbackQueryCommand
 
         var id = int.Parse(query.Data![7..]);
         var vk = await serviceFacade.UnitOfWork.VkRepository.Value.GetAsync(id);
-        if (vk == null || vk.UserId != user!.Id || !string.IsNullOrEmpty(vk.AccessToken))
+        if (vk == null || vk.UserId != user!.Id || new ActiveVkSpecification().IsSatisfiedBy(vk))
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
                 "Вы не можете активировать этот аккаунт.");

@@ -69,7 +69,7 @@ public class VkApi
         services.AddAudioBypass();
         services.AddScoped<ICaptchaSolver, CaptchaSolver>(_ => new CaptchaSolver(_antiCaptchaToken));
         if (proxy != null)
-            services.AddSingleton(_ => VkApi.GetHttpClientWithProxy(proxy));
+            services.AddSingleton(_ => GetHttpClientWithProxy(proxy));
         var api = new VkNet.VkApi(services);
 
         await api.AuthorizeAsync(new ApiAuthParams

@@ -123,7 +123,7 @@ public class UpdateHandler : IUpdateHandler
             try
             {
                 await _botClient.SendTextMessageAsync(id,
-                    $"Возникла ошибка при обработке команды: {ex.Message} За дополнительной информацией обратитесь в поддержку.",
+                    $"Возникла ошибка при обработке команды: ({ex.GetType()}) {ex.Message} За дополнительной информацией обратитесь в поддержку.",
                     replyMarkup: MainKeyboard.Main);
             }
             catch
