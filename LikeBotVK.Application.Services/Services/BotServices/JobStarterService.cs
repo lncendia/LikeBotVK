@@ -52,7 +52,7 @@ public class JobStarterService : IJobStarterService
         {
             await _jobProcessor.ProcessJobAsync(job, token);
         }
-        catch (Exception ex) when (ex is not TaskCanceledException && ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             job.ErrorMessage = ex.Message;
         }
@@ -80,7 +80,7 @@ public class JobStarterService : IJobStarterService
             await _unitOfWork.JobRepository.Value.UpdateAsync(job);
             return true;
         }
-        catch (Exception ex) when (ex is not TaskCanceledException && ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             job.ErrorMessage = ex.Message;
             job.MarkAsCompleted();

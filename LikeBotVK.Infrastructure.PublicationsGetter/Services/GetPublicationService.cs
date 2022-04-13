@@ -35,11 +35,12 @@ public class GetPublicationService : IGetPublicationService
             limitTime?.ToLocalTime(), count, token);
         if (publications?.Items == null || !publications.Items.Any())
             throw new PublicationsNotFoundException(hashtag);
+
         var items = type switch
         {
-            Type.Like => publications.Items.Where(item => item.Likes.CanLike && !item.Likes.UserLikes),
-            Type.Subscribe => publications.Items,
-            Type.Repost => publications.Items.Where(item => item.Likes.CanPublish!.Value),
+            Type.Like => publications.Items.Where(item => item.Likes is {CanLike: true, UserLikes: false}),
+            Type.Subscribe => publications.Items.Where(item => item.Likes != null),
+            Type.Repost => publications.Items.Where(item => item.Likes is {CanPublish: true}),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
         var list = items.Select(item => new Publication {OwnerId = item.FromId, PublicationId = item.Id}).ToList();
