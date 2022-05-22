@@ -3,6 +3,8 @@ using LikeBotVK.Application.Abstractions.DTO;
 using LikeBotVK.Application.Abstractions.Repositories;
 using LikeBotVK.Application.Abstractions.Services.WebServices;
 using LikeBotVK.Domain.Abstractions.Repositories;
+using LikeBotVK.Domain.Jobs.Specification;
+using LikeBotVK.Domain.VK.Specification;
 
 namespace LikeBotVK.Application.Services.Services.WebServices;
 
@@ -42,6 +44,17 @@ public class UserService : IUserService
         var user = userTask.Result;
         var userData = userDataTask.Result;
         if (user == null && userData == null) return false;
+
+        var vks = await _unitOfWork.VkRepository.Value.FindAsync(new UserVkSpecification(id));
+
+        var jobs = await _unitOfWork.JobRepository.Value.FindAsync(
+            new JobsFromVkIdsSpecification(vks.Select(x => x.Id).ToList()));
+        foreach (var job in jobs)
+        {
+            var jobData = await _applicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
+            if (jobData != null) await _applicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(jobData);
+        }
+        
         var t1 = user == null ? Task.CompletedTask : _unitOfWork.UserRepository.Value.DeleteAsync(user);
         var t2 = userData == null
             ? Task.CompletedTask

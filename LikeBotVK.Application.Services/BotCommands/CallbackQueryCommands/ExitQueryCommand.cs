@@ -35,7 +35,7 @@ public class ExitQueryCommand : ICallbackQueryCommand
 
         var specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
             new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
-        
+
         if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(specification) > 0)
         {
             await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
@@ -45,10 +45,16 @@ public class ExitQueryCommand : ICallbackQueryCommand
 
         await client.SendChatActionAsync(user.Id, ChatAction.Typing);
         if (!vk.IsActive()) await serviceFacade.VkLoginService.DeactivateAsync(vk);
-        await serviceFacade.UnitOfWork.VkRepository.Value.DeleteAsync(vk);
+        var jobs = await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(new JobsFromVkIdSpecification(vk.Id));
+        foreach (var job in jobs)
+        {
+            var jobData = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
+            if (jobData != null)
+                await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(jobData);
+        }
 
-        await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId,
-            "Аккаунт успешно удалён.");
+        await serviceFacade.UnitOfWork.VkRepository.Value.DeleteAsync(vk);
+        await client.EditMessageTextAsync(query.From.Id, query.Message!.MessageId, "Аккаунт успешно удалён.");
     }
 
     public bool Compare(CallbackQuery query, User? user, UserData? data) => query.Data!.StartsWith("exit");
