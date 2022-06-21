@@ -10,4 +10,5 @@ public interface IJobSpecificationVisitor : ISpecificationVisitor<IJobSpecificat
     void Visit(JobsFromIdsSpecification specification);
     void Visit(JobsFromVkIdSpecification specification);
     void Visit(JobsFromVkIdsSpecification specification);
+    void Visit(StartedJobsSpecification specification);
 }

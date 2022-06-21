@@ -37,6 +37,16 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
         }
 
         var specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
+            new NotSpecification<Job, IJobSpecificationVisitor>(new StartedJobsSpecification()));
+        var notStartedJobs = await serviceFacade.UnitOfWork.JobRepository.Value.FindAsync(specification);
+        foreach (var job in notStartedJobs)
+        {
+            var jobData = await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.GetAsync(job.Id);
+            if (jobData != null) await serviceFacade.ApplicationDataUnitOfWork.JobDataRepository.Value.DeleteAsync(jobData);
+        }
+        await serviceFacade.UnitOfWork.JobRepository.Value.DeleteRangeAsync(notStartedJobs);
+        
+        specification = new AndSpecification<Job, IJobSpecificationVisitor>(new JobsFromVkIdSpecification(vk.Id),
             new NotSpecification<Job, IJobSpecificationVisitor>(new FinishedJobsSpecification()));
         if (await serviceFacade.UnitOfWork.JobRepository.Value.CountAsync(specification) > 0)
         {
@@ -44,6 +54,8 @@ public class ReLogInQueryCommand : ICallbackQueryCommand
                 "На этом аккаунте есть незавершенные задачи.");
             return;
         }
+        
+        
 
 
         await serviceFacade.VkLoginService.DeactivateAsync(vk);

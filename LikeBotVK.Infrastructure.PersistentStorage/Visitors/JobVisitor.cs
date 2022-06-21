@@ -23,6 +23,9 @@ public class JobVisitor : BaseVisitor<JobModel, IJobSpecificationVisitor, Job>, 
     public void Visit(JobsFromVkIdsSpecification specification) =>
         Expr = j => specification.VkIds.Contains(j.VkId);
 
+    public void Visit(StartedJobsSpecification specification) =>
+        Expr = j => j.StartTime.HasValue;
+
     protected override Expression<Func<JobModel, bool>> ConvertSpecToExpression(
         ISpecification<Job, IJobSpecificationVisitor> spec)
     {
