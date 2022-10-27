@@ -35,11 +35,7 @@ public class PaymentService : IPaymentCreatorService
                         ValueDecimal = cost,
                         CurrencyEnum = CurrencyEnum.Rub
                     },
-                    ExpirationDateTime = DateTime.Now.AddDays(5),
-                    Customer = new Customer
-                    {
-                        Account = id.ToString()
-                    }
+                    ExpirationDateTime = DateTime.Now.AddDays(5)
                 });
 
             return new PaymentData(response.BillId, response.PayUrl.ToString(), response.Amount.ValueDecimal);
